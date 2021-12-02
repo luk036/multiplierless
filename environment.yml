@@ -1,0 +1,9 @@
+name: multiplierless
+channels:
+  - conda-forge
+dependencies:
+  - pytest
+  - pytest-benchmark
+  - pytest-cov
+  - numpy
+  - decorator
