@@ -35,7 +35,5 @@ jobs:
             if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
             git clone https://github.com/luk036/ellalgo.git
             pip install ./ellalgo
-            git clone https://github.com/luk036/pycsd.git
-            pip install ./pycsd
             python setup.py develop
             pytest

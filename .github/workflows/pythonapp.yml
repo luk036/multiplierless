@@ -19,8 +19,6 @@ jobs:
         pip install -r requirements.txt
         git clone https://github.com/luk036/ellalgo.git
         pip install ./ellalgo
-        git clone https://github.com/luk036/pycsd.git
-        pip install ./pycsd
 
     - name: Lint with flake8
       run: |

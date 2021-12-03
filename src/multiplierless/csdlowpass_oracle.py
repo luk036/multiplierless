@@ -4,8 +4,7 @@ from __future__ import print_function
 from typing import Tuple, Union
 
 import numpy as np
-from pycsd.csd.csd import to_csdfixed, to_decimal
-
+from .csd import to_csdfixed, to_decimal
 from .spectral_fact import inverse_spectral_fact, spectral_fact
 
 Arr = Union[np.ndarray, float]
