@@ -11,7 +11,7 @@
 [![CodeFactor](https://www.codefactor.io/repository/github/luk036/multiplierless/badge)](https://www.codefactor.io/repository/github/luk036/multiplierless)
 [![BCH compliance](https://bettercodehub.com/edge/badge/luk036/multiplierless?branch=master)](https://bettercodehub.com/)
 
-ellipsoid method python code
+Multiplierless FIR filter python code
 
 ## Features
 
@@ -22,7 +22,7 @@ ellipsoid method python code
 
 ## Installation
 
--   The core ellipsoid method depends only on the `numpy` module.
+-   The core ellipsoid method depends only on the `ellalgo`, `numpy`, and `numexpr` modules.
 
 ## See also
 
