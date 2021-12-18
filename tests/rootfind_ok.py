@@ -1,5 +1,5 @@
 import numpy as np
-from math import pow, cos, sqrt
+from math import pow, cos
 
 
 def makeG(vr, vp):
@@ -59,12 +59,12 @@ class Options:
 def initial_guess(pa):
     N = len(pa) - 1
     M = N // 2
-    c = -pa[1]/(N*pa[0])
+    C = -pa[1]/(N*pa[0])
     P = np.poly1d(pa)
-    re = pow(abs(P(c)), 1./N)
+    R = pow(abs(P(C)), 1./N)
     k = 2 * np.pi / N
-    r0s = [2 * (c + re * cos(k * i)) for i in range(1, M + 1)]
-    m = c * c + re * re
+    r0s = [2 * (C + R * cos(k * i)) for i in range(1, M + 1)]
+    m = C * C + R * R
     q0s = [m + ri for ri in r0s]
     vr0s = [np.array([r0i, q0i]) for r0i, q0i in zip(r0s, q0s)]
     return vr0s
@@ -74,37 +74,22 @@ def pbairstow_even(pa, vrs, options = Options()):
     N = len(pa) - 1 # degree, assume even
     M = N // 2
     found = False
+
     for niter in range(options.max_iter):
         tol = 0.
         for i in range(M):
             vA, pb = horner(pa, vrs[i])
-            toli = abs(vA[0]) + abs(vA[1])
-            if toli < options.tol:
-                continue
-            tol = max(tol, toli)
             vA1, _ = horner(pb, vrs[i])
             for j in filter(lambda j: j != i, range(M)): # exclude i
-                vp = vrs[i] - vrs[j]
-                mp = makeG(vrs[j], vp)  # 2 mul's
-                vA1 -= np.linalg.solve(mp, vA)  # 6 mul's + 2 div's
-                # vA1 = suppress(vA, vA1, vrs[i], vrs[j])
+                vA1 = suppress(vA, vA1, vrs[i], vrs[j])
             mA1 = makeG(vrs[i], vA1) # 2 mul's
-            vrs[i] -= np.linalg.solve(mA1, vA) # Gauss-Seidel fashion
+            vdelta = np.linalg.solve(mA1, vA) # 6 mul's + 2 div's
+            vrs[i] -= vdelta # Gauss-Seidel fashion
+            tol += abs(vdelta[0]) + abs(vdelta[1])
         if tol < options.tol:
             found = True
             break
     return vrs, niter + 1, found
-
-
-def find_rootq(b, c):
-    hb = b / 2.
-    d = hb * hb - c
-    if d < 0.:
-        x1 = -hb + (sqrt(-d) if hb < 0. else -sqrt(-d))*1j
-    else:
-        x1 = -hb + (sqrt(d) if hb < 0. else -sqrt(d))
-    x2 = c / x1
-    return x1, x2
 
 
 def main():
@@ -116,7 +101,7 @@ def main():
     print(check_newton(vAorig, vA1orig, vr))
     vA1 = suppress(vA, vA1, vr, vrj)
     print(check_newton(vA, vA1, vr))
-    h = [5., 2., 9., 6., 2.]
+    h = [5, 2, 9, 6, 2]
     vr0s = initial_guess(h)
     print(vr0s)
     vA, pb = horner(h, vr0s[1])
@@ -127,7 +112,6 @@ def main():
 
     vrs, niter, found = pbairstow_even(h, vr0s)
     print([niter, found])
-    print([find_rootq(-r[0], -r[1]) for r in vrs])
 
 
 if __name__ == '__main__':
