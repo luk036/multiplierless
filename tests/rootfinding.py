@@ -1,4 +1,5 @@
 import numpy as np
+from math import pow, cos
 
 
 def makeG(vr, vp):
@@ -26,13 +27,11 @@ def suppress_orig(vA, vA1, vr, vrj):
 
 def suppress(vA, vA1, vr, vrj):
     """
-    total 9 mul's + 2 div's
+    total 8 mul's + 2 div's
     """
     vp = vr - vrj
-    mp = makeG(vr, vp)  # 2 mul's
-    va = np.linalg.solve(mp, vA)  # 6 mul's + 2 div's
-    a, b = va
-    vA1 -= np.array([a, a * vp[0] + b]) # 1 mul
+    mp = makeG(vrj, vp)  # 2 mul's
+    vA1 -= np.linalg.solve(mp, vA)  # 6 mul's + 2 div's
     return vA1
 
 
@@ -44,6 +43,8 @@ def check_newton(vA, vA1, vr):
 def horner(pa, vr):
     r, q = vr
     pb = np.array(pa[:-2])
+    if len(pb) == 1:
+        return np.array([pb[0] * r + pa[1], pb[0] * q + pa[2]]), pb
     pb[1] += pb[0] * r
     n = len(pa) - 1
     for i in range(2, n - 1):
@@ -58,6 +59,20 @@ class Options:
     tol: float = 1e-8
 
 
+def initial_guess(pa):
+    N = len(pa) - 1
+    M = N // 2
+    C = -pa[1]/(N*pa[0])
+    P = np.poly1d(pa)
+    R = pow(abs(P(C)), 1./N)
+    k = 2 * np.pi / N
+    r0s = [2 * (C + R * cos(k * i)) for i in range(1, M + 1)]
+    m = C * C + R * R
+    q0s = [m + ri for ri in r0s]
+    vr0s = [np.array([r0i, q0i]) for r0i, q0i in zip(r0s, q0s)]
+    return vr0s
+
+
 def pbairstow_even(pa, vrs, options = Options()):
     N = len(pa) - 1 # degree, assume even
     M = N // 2
@@ -68,11 +83,11 @@ def pbairstow_even(pa, vrs, options = Options()):
         for i in range(M):
             vA, pb = horner(pa, vrs[i])
             vA1, _ = horner(pb, vrs[i])
-            for j in filter(lambda j: j == i, range(M)): # exclude i
+            for j in filter(lambda j: j != i, range(M)): # exclude i
                 vA1 = suppress(vA, vA1, vrs[i], vrs[j])
             mA1 = makeG(vrs[i], vA1) # 2 mul's
             vdelta = np.linalg.solve(mA1, vA) # 6 mul's + 2 div's
-            vrs[i] -= vdelta # Gauss-Sidel fashion
+            vrs[i] -= vdelta # Gauss-Seidel fashion
             tol += abs(vdelta[0]) + abs(vdelta[1])
         if tol < options.tol:
             found = True
@@ -89,6 +104,17 @@ def main():
     print(check_newton(vAorig, vA1orig, vr))
     vA1 = suppress(vA, vA1, vr, vrj)
     print(check_newton(vA, vA1, vr))
+    h = [5, 2, 9, 6, 2]
+    vr0s = initial_guess(h)
+    print(vr0s)
+    vA, pb = horner(h, vr0s[1])
+    print(vA)
+    print(pb)
+    vA1, _ = horner(pb, vr0s[1])
+    print(vA1)
+
+    vrs, niter, found = pbairstow_even(h, vr0s)
+    print([niter, found])
 
 
 if __name__ == '__main__':
