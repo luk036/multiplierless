@@ -19,7 +19,7 @@ class matrix2(vector2):
         """
         return matrix2(self._x, self._y)
 
-    def dot(self, rhs: vector2):
+    def mdot(self, rhs: vector2):
         """[summary]
 
         Args:
@@ -123,7 +123,7 @@ class matrix2(vector2):
         """
         return matrix2(self.x * alpha, self.y * alpha)
 
-    def __idiv__(self, alpha):
+    def __itruediv__(self, alpha):
         """[summary]
 
         Args:
@@ -136,7 +136,7 @@ class matrix2(vector2):
         self._y /= alpha
         return self
 
-    def __div__(self, alpha):
+    def __truediv__(self, alpha):
         """[summary]
 
         Args:

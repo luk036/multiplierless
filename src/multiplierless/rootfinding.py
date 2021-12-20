@@ -29,7 +29,7 @@ def suppress_orig(vA, vA1, vr, vrj):
     va = Ap.dot(vA)  # 4 mul's
     vA = va  # 2 mul's
     a, b = va.x, va.y
-    vc = vA1 - vector2(a, a * p + b) * (1 / e)  # 3 mul
+    vc = vA1 - vector2(a, a * p + b) / e  # 3 mul
     vA1 = Ap.dot(vc)  # 4 mul
     return vA, vA1
 
@@ -40,13 +40,13 @@ def suppress(vA, vA1, vr, vrj):
     """
     vp = vr - vrj
     mp = makeadjoint(vrj, vp)  # 2 mul's
-    vA1 -= mp.dot(vA) * (1 / mp.det())  # 6 mul's + 2 div's
+    vA1 -= mp.mdot(vA) / mp.det()  # 6 mul's + 2 div's
     return vA1
 
 
 def check_newton(vA, vA1, vr):
     mA1 = makeadjoint(vr, vA1)  # 2 mul's
-    return mA1.dot(vA) * (1 / mA1.det())  # 6 mul's + 2 div's
+    return mA1.mdot(vA) / mA1.det()  # 6 mul's + 2 div's
 
 
 def horner_eval(pa, r):
@@ -105,10 +105,10 @@ def pbairstow_even(pa, vrs, options=Options()):
             for j in filter(lambda j: j != i, range(M)):  # exclude i
                 vp = vrs[i] - vrs[j]
                 mp = makeadjoint(vrs[j], vp)  # 2 mul's
-                vA1 -= mp.dot(vA) * (1 / mp.det())  # 6 mul's + 2 div's
+                vA1 -= mp.mdot(vA) / mp.det()  # 6 mul's + 2 div's
                 # vA1 = suppress(vA, vA1, vrs[i], vrs[j])
             mA1 = makeadjoint(vrs[i], vA1)  # 2 mul's
-            vrs[i] -= mA1.dot(vA) * (1 / mA1.det())  # Gauss-Seidel fashion
+            vrs[i] -= mA1.mdot(vA) / mA1.det()  # Gauss-Seidel fashion
         if tol < options.tol:
             found = True
             break

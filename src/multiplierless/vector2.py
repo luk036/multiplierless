@@ -172,7 +172,7 @@ class vector2:
         """
         return vector2(self.x * alpha, self.y * alpha)
 
-    def __idiv__(self, alpha):
+    def __itruediv__(self, alpha):
         """[summary]
 
         Args:
@@ -185,7 +185,7 @@ class vector2:
         self._y /= alpha
         return self
 
-    def __div__(self, alpha):
+    def __truediv__(self, alpha):
         """[summary]
 
         Args:
