@@ -7,10 +7,10 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import os
-import sys
 import inspect
+import os
 import shutil
+import sys
 
 # -- Path setup --------------------------------------------------------------
 
@@ -267,7 +267,13 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-    ("index", "user_guide.tex", "multiplierless Documentation", "Wai-Shing Luk", "manual")
+    (
+        "index",
+        "user_guide.tex",
+        "multiplierless Documentation",
+        "Wai-Shing Luk",
+        "manual",
+    )
 ]
 
 # The name of an image file (relative to this directory) to place at the top of

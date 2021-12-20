@@ -2,7 +2,6 @@
 
 Ellipsoid Method Python Code
 
-
 ## Note
 
 > This is the main page of your project's [Sphinx] documentation. It is
@@ -13,15 +12,13 @@ Ellipsoid Method Python Code
 > Please check [Sphinx], [recommonmark] and [autostructify] for more information
 > about how to document your project and how to configure your preferences.
 
-
 ## Contents
 
-* [Overview](readme)
-* [License](license)
-* [Authors](authors)
-* [Changelog](changelog)
-* [Module Reference](api/modules)
-
+- [Overview](readme)
+- [License](license)
+- [Authors](authors)
+- [Changelog](changelog)
+- [Module Reference](api/modules)
 
 ## Indices and tables
 
@@ -31,8 +28,8 @@ Ellipsoid Method Python Code
 * :ref:`search`
 ```
 
-[Sphinx]: http://www.sphinx-doc.org/
-[Markdown]: https://daringfireball.net/projects/markdown/
-[reStructuredText]: http://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html
+[sphinx]: http://www.sphinx-doc.org/
+[markdown]: https://daringfireball.net/projects/markdown/
+[restructuredtext]: http://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html
 [recommonmark]: https://recommonmark.readthedocs.io/en/latest
 [autostructify]: https://recommonmark.readthedocs.io/en/latest/auto_structify.html

@@ -4,6 +4,7 @@ from __future__ import print_function
 from typing import Tuple, Union
 
 import numpy as np
+
 from .csd import to_csdfixed, to_decimal
 from .spectral_fact import inverse_spectral_fact, spectral_fact
 
@@ -17,6 +18,7 @@ class csdlowpass_oracle:
     Returns:
         [type]: [description]
     """
+
     rcsd = None
 
     def __init__(self, nnz, lowpass):

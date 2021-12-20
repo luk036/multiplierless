@@ -15,20 +15,19 @@ Multiplierless FIR filter design python code
 
 ## Features
 
--   At most one square-root per iteration.
--   Include oracles for Matrix Inequalities and Network problems.
--   Suport Parallel-Cuts.
--   Pure Python code.
+- At most one square-root per iteration.
+- Include oracles for Matrix Inequalities and Network problems.
+- Suport Parallel-Cuts.
+- Pure Python code.
 
 ## Installation
 
--   The core ellipsoid method depends only on the `ellalgo`, `numpy`, and `numexpr` modules.
+- The core ellipsoid method depends only on the `ellalgo`, `numpy`, and `numexpr` modules.
 
 ## See also
 
--   [multiplierless-cpp](https://github.com/luk036/multiplierless-cpp)
--   [Presentation Slides](https://luk036.github.io/cvx)
-
+- [multiplierless-cpp](https://github.com/luk036/multiplierless-cpp)
+- [Presentation Slides](https://luk036.github.io/cvx)
 
 <!-- pyscaffold-notes -->
 

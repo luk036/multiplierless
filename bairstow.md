@@ -17,7 +17,7 @@ where $N$ is the degree of the polynomial and $^{(n)}$ denotes the iteration ind
 
 $$x_i^{(n+1)} = x_i^{(n)} - \frac{P(x_i^{(n)})}{P'(x_i^{(n)}) - \sum_{j \neq i}^N \frac{P(x_i^{(n)})}{x_i^{(n)} - x_j^{(n)}} }, \quad i = 1,\cdots, N$$
 
-where $P'(x)$ denotes the dervative of $P(x)$. These methods have recently been studied for parallel implementations \[5, 4, 7\]. In a previous discussion \[3\], it was pointed out that Aberth\'s method can be seen as a modification of Maehly\'s proceduce \[11, p. 259\], only replacing the computed zeros with all other iterates. We refer to this generalized idea as the *Parallel Anticipatory Implicit Deflation* (PAID) method.
+where $P'(x)$ denotes the dervative of $P(x)$. These methods have recently been studied for parallel implementations \[5, 4, 7\]. In a previous discussion \[3\], it was pointed out that Aberth\'s method can be seen as a modification of Maehly\'s proceduce \[11, p. 259\], only replacing the computed zeros with all other iterates. We refer to this generalized idea as the _Parallel Anticipatory Implicit Deflation_ (PAID) method.
 
 As mentioned by Aberth, the symmetry problem can be overcome by using asymmetric iterates for Aberth\'s method \[1\]. However, in this configuration, complex arithmetic cannot be avoided even if the polynomial is real. In this paper, we will not consider the possibility of using symmetric iterates. Instead, we try to use the PAID idea and Bairstow\'s approach to overcome this drawback. This idea is similar to the one in the literature \[13\], but the obtained method is simpler, which makes it more competitive with Aberth\'s approach.
 
@@ -41,7 +41,7 @@ The first step in developing the novel algorithm is to find a method of suppress
 
 $$ \begin{bmatrix} p \\ l \end{bmatrix} = \begin{bmatrix} r \\ q \end{bmatrix} - \begin{bmatrix} \widetilde{r} \\ \widetilde{q} \end{bmatrix},$$
 
-$$ \begin{bmatrix} \widetilde{A}_1 \\ \widetilde{B}_1 \end{bmatrix} = \begin{bmatrix} A_1 \\ B_1 \end{bmatrix} - \begin{bmatrix} p\cdot \tilde{r} + l & p \\ p\cdot \tilde{q} & l \end{bmatrix}^{-1} \begin{bmatrix} A \\ B \end{bmatrix},$$
+$$ \begin{bmatrix} \widetilde{A}\_1 \\ \widetilde{B}\_1 \end{bmatrix} = \begin{bmatrix} A_1 \\ B_1 \end{bmatrix} - \begin{bmatrix} p\cdot \tilde{r} + l & p \\ p\cdot \tilde{q} & l \end{bmatrix}^{-1} \begin{bmatrix} A \\ B \end{bmatrix},$$
 
 where $a$, $b$, $c$, $d$, $e$, $f$, $l$, and $p$ are intermediate variables. By repeating this process, a second quadratic factor can be suppressed, starting with $\widetilde{A},\widetilde{B},{\widetilde{A}}_{1},{\widetilde{B}}_{1}$ and so on.
 
@@ -59,15 +59,15 @@ For polynomials of odd degree, we need to do the following special treatment. Be
 
 At first glance, the method appears to be inferior to Aberth\'s method because of the high cost of suppressing the quadratic factor. However, as we mentioned before, the method is actually more economical due to the avoidance of complex arithmetic. Table 3.1 shows the amount of computation required per iteration for both methods. Only the leading terms are counted.
 
-|             | Aberth's method     | The proposed method  |
-|-------------|---------------------|----------------------|
-| Horner      |$8 N^2$              | $4 N M$              |
-| Suppression |$4 N^2$              | $8 M^2$              |
-| Total       |$12N^2$              | $16 M^2$             |
+|             | Aberth's method | The proposed method |
+| ----------- | --------------- | ------------------- |
+| Horner      | $8 N^2$         | $4 N M$             |
+| Suppression | $4 N^2$         | $8 M^2$             |
+| Total       | $12N^2$         | $16 M^2$            |
 
 :Table 3.1
 
-The first row of the table shows the cost of the Horner type of evaluation. It includes the evaluation of $P( x_{i} )$ and $P'( x_{i} )$ of the evaluation, while in Aberth\'s method the evaluation of $(A,B)$ and $( A_{1},B_{1} )$ of the evaluation. The second row indicates the cost of suppressing the zero/quadratic factor. It includes the evaluations of $1/(x_i - x_j)$ in Aberth's method and the evaluations of equation (2.3) in the proposed method. If we count addition, subtraction, multiplication and division as a *flop* (floating point operation), then the total flop for each iteration of Aberth's method is $23N^{2} + O(N)$ and the proposed method is $46M^{2} + O(N)$. Thus, an improvement of about a factor of two is expected.
+The first row of the table shows the cost of the Horner type of evaluation. It includes the evaluation of $P( x_{i} )$ and $P'( x_{i} )$ of the evaluation, while in Aberth\'s method the evaluation of $(A,B)$ and $( A_{1},B_{1} )$ of the evaluation. The second row indicates the cost of suppressing the zero/quadratic factor. It includes the evaluations of $1/(x_i - x_j)$ in Aberth's method and the evaluations of equation (2.3) in the proposed method. If we count addition, subtraction, multiplication and division as a _flop_ (floating point operation), then the total flop for each iteration of Aberth's method is $23N^{2} + O(N)$ and the proposed method is $46M^{2} + O(N)$. Thus, an improvement of about a factor of two is expected.
 
 ## Select Initial Guess
 
