@@ -69,7 +69,7 @@ def horner(pa, vr):
 
 class Options:
     max_iter: int = 2000
-    tol: float = 1e-8
+    tol: float = 1e-12
 
 
 def initial_guess(pa):
@@ -93,12 +93,14 @@ def pbairstow_even(pa, vrs, options=Options()):
     N = len(pa) - 1  # degree, assume even
     M = N // 2
     found = False
+    converged = [False] * M
     for niter in range(options.max_iter):
         tol = 0.0
-        for i in range(M):
+        for i in filter(lambda i: converged[i] == False, range(M)): # exclude converged
             vA, pb = horner(pa, vrs[i])
             toli = abs(vA.x) + abs(vA.y)
             if toli < options.tol:
+                converged[i] = True
                 continue
             tol = max(tol, toli)
             vA1, _ = horner(pb, vrs[i])
