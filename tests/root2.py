@@ -25,13 +25,13 @@ def main(args):
     c = float(args[3])
 
     if a == 0.0:
-        print("The answer is {}.".format(-c / b))
+        print("The ans is {}.".format(-c / b))
         return
     ans = find_roots(a, b, c)
     if ans is None:
         print("No real solution.")
     else:
-        print("The answer is {}.".format(ans))
+        print(f"The ans is {ans}.")
 
 
 if __name__ == "__main__":

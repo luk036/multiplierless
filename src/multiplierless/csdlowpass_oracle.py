@@ -31,7 +31,7 @@ class csdlowpass_oracle:
         self.nnz = nnz
         self.lowpass = lowpass
 
-    def __call__(self, r: Arr, Spsq, retry: bool):
+    def assess_q(self, r: Arr, Spsq, retry: bool):
         """[summary]
 
         Arguments:
@@ -44,14 +44,14 @@ class csdlowpass_oracle:
         """
         if not retry:  # retry due to no effect in the previous cut
             self.lowpass.retry = False
-            cut, Spsq2 = self.lowpass(r, Spsq)
+            cut, Spsq2 = self.lowpass.assess_optim(r, Spsq)
             if Spsq2 is None:  # infeasible
                 return cut, r, None, True
             h = spectral_fact(r)
             hcsd = np.array([to_decimal(to_csdfixed(hi, self.nnz)) for hi in h])
             self.rcsd = inverse_spectral_fact(hcsd)
 
-        (gc, hc), Spsq2 = self.lowpass(self.rcsd, Spsq)
+        (gc, hc), Spsq2 = self.lowpass.assess_optim(self.rcsd, Spsq)
         # no more alternative cuts?
         hc += gc @ (self.rcsd - r)
         more_alt = self.lowpass.more_alt and not retry

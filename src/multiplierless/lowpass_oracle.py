@@ -41,7 +41,7 @@ class lowpass_oracle:
         self.Lpsq = Lpsq
         self.Upsq = Upsq
 
-    def __call__(self, x: Arr, Spsq: float):
+    def assess_optim(self, x: Arr, Spsq: float):
         """[summary]
 
         Arguments:
