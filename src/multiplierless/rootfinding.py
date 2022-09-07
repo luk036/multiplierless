@@ -96,7 +96,7 @@ def pbairstow_even(pa, vrs, options=Options()):
     converged = [False] * M
     for niter in range(options.max_iter):
         tol = 0.0
-        for i in filter(lambda i: converged[i] == False, range(M)): # exclude converged
+        for i in filter(lambda i: converged[i] is False, range(M)): # exclude converged
             vA, pb = horner(pa, vrs[i])
             toli = abs(vA.x) + abs(vA.y)
             if toli < options.tol:
