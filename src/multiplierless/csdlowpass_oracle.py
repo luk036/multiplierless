@@ -31,7 +31,7 @@ class csdlowpass_oracle:
         self.nnz = nnz
         self.lowpass = lowpass
 
-    def assess_q(self, r: Arr, Spsq, retry: bool):
+    def assess_optim_q(self, r: Arr, Spsq, retry: bool):
         """[summary]
 
         Arguments:
