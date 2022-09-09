@@ -5,7 +5,7 @@ import time
 
 import numpy as np
 from ellalgo.cutting_plane import Options, cutting_plane_optim, cutting_plane_q
-from ellalgo.ell import ell
+from ellalgo.ell import Ell
 
 from multiplierless.csdlowpass_oracle import csdlowpass_oracle
 from multiplierless.lowpass_oracle import lowpass_oracle
@@ -138,7 +138,7 @@ def run_lowpass(use_parallel_cut, duration=0.000001):
 
     r0 = np.zeros(N)  # initial x0
     r0[0] = 0
-    E = ell(4.0, r0)
+    E = Ell(4.0, r0)
     E.use_parallel_cut = use_parallel_cut
     P, Spsq = create_lowpass_case(N)
     options = Options()
@@ -186,7 +186,7 @@ def run_csdlowpass(use_parallel_cut, duration=0.000001):
 
     r0 = np.zeros(N)  # initial x0
     r0[0] = 0
-    E = ell(4.0, r0)
+    E = Ell(4.0, r0)
     E.use_parallel_cut = use_parallel_cut
     Pcsd, Spsq = create_csdlowpass_case(N, nnz)
     options = Options()
