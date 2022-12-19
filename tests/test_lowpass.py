@@ -99,9 +99,9 @@ def create_lowpass_case(N=48):
     ind_end = ind_s[0]
     Anr = A[range(ind_beg + 1, ind_end), :]
 
-    Lpsq = Lp ** 2
-    Upsq = Up ** 2
-    Spsq = Sp ** 2
+    Lpsq = Lp**2
+    Upsq = Up**2
+    Spsq = Sp**2
 
     P = lowpass_oracle(Ap, As, Anr, Lpsq, Upsq)
     return P, Spsq
@@ -165,7 +165,7 @@ def test_lowpass():
     """[summary]"""
     result, feasible = run_lowpass(True)
     assert feasible
-    assert result >= 1089
+    assert result >= 1083
     assert result <= 1194
 
 
