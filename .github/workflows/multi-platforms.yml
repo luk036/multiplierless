@@ -33,7 +33,8 @@ jobs:
           conda install pytest
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          git clone https://github.com/luk036/ellalgo.git
-          pip install ./ellalgo
+          pip install git+https://github.com/luk036/csdigit.git
+          pip install git+https://github.com/luk036/bairstow.git
+          pip install git+https://github.com/luk036/ellalgo.git
           python setup.py develop
           pytest
