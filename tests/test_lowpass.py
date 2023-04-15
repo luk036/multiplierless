@@ -103,8 +103,8 @@ def create_lowpass_case(N=48):
     Upsq = Up**2
     Spsq = Sp**2
 
-    P = lowpass_oracle(Ap, As, Anr, Lpsq, Upsq)
-    return P, Spsq
+    omega = lowpass_oracle(Ap, As, Anr, Lpsq, Upsq)
+    return omega, Spsq
 
 
 def create_csdlowpass_case(N=48, nnz=8):
@@ -117,8 +117,8 @@ def create_csdlowpass_case(N=48, nnz=8):
     Returns:
         [type]: [description]
     """
-    P, Spsq = create_lowpass_case(N)
-    Pcsd = csdlowpass_oracle(nnz, P)
+    omega, Spsq = create_lowpass_case(N)
+    Pcsd = csdlowpass_oracle(nnz, omega)
     return Pcsd, Spsq
 
 
@@ -136,15 +136,15 @@ def run_lowpass(use_parallel_cut, duration=0.000001):
     """
     N = 32
 
-    r0 = np.zeros(N)  # initial x0
+    r0 = np.zeros(N)  # initial xinit
     r0[0] = 0
-    E = Ell(4.0, r0)
-    E.use_parallel_cut = use_parallel_cut
-    P, Spsq = create_lowpass_case(N)
+    ellip = Ell(4.0, r0)
+    ellip.use_parallel_cut = use_parallel_cut
+    omega, Spsq = create_lowpass_case(N)
     options = Options()
     options.max_iter = 20000
     options.tol = 1e-8
-    h, _, num_iters = cutting_plane_optim(P, E, Spsq, options)
+    h, _, num_iters = cutting_plane_optim(omega, ellip, Spsq, options)
     time.sleep(duration)
     # h = spectral_fact(r)
     return num_iters, h is not None
@@ -184,16 +184,16 @@ def run_csdlowpass(use_parallel_cut, duration=0.000001):
     N = 32
     nnz = 7
 
-    r0 = np.zeros(N)  # initial x0
+    r0 = np.zeros(N)  # initial xinit
     r0[0] = 0
-    E = Ell(4.0, r0)
-    E.use_parallel_cut = use_parallel_cut
+    ellip = Ell(4.0, r0)
+    ellip.use_parallel_cut = use_parallel_cut
     Pcsd, Spsq = create_csdlowpass_case(N, nnz)
     options = Options()
     options.max_iter = 20000
     options.tol = 1e-8
 
-    h, _, num_iters = cutting_plane_q(Pcsd, E, Spsq, options)
+    h, _, num_iters = cutting_plane_q(Pcsd, ellip, Spsq, options)
     time.sleep(duration)
     # h = spectral_fact(r)
     return num_iters, h is not None
