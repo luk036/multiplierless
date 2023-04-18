@@ -19,7 +19,7 @@ Multiplierless FIR filter design in Python
 
 ## Installation
 
-- The core ellipsoid method depends only on the `ellalgo`, `numpy`, and `numexpr` modules.
+- The core ellipsoid method depends only on the `ellalgo` and `numpy` modules.
 
 ## See also
 
