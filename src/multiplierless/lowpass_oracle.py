@@ -10,7 +10,7 @@ Arr = Union[np.ndarray, float]
 Cut = Tuple[Arr, float]
 
 
-class lowpass_oracle:
+class LowpassOracle:
     """[summary]
 
     Returns:

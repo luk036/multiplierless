@@ -7,8 +7,8 @@ import numpy as np
 from ellalgo.cutting_plane import Options, cutting_plane_optim, cutting_plane_q
 from ellalgo.ell import Ell
 
-from multiplierless.csdlowpass_oracle import csdlowpass_oracle
-from multiplierless.lowpass_oracle import lowpass_oracle
+from multiplierless.lowpass_oracle_q import LowpassOracleQ
+from multiplierless.lowpass_oracle import LowpassOracle
 
 # Modified from CVX code by Almir Mutapcic in 2006.
 # Adapted in 2010 for impulse response peak-minimization by convex iteration
@@ -31,7 +31,7 @@ from multiplierless.lowpass_oracle import lowpass_oracle
 #
 # where R(w) is squared magnitude frequency response
 # (and Fourier transform of autocorrelation coefficients r).
-# Variables are coeffients r and G = hh' where h is impulse response.
+# Variables are coeffients r and gra = hh' where h is impulse response.
 # delta is allowed passband ripple.
 # This is a convex problem (can be formulated as an SDP after sampling).
 
@@ -103,11 +103,11 @@ def create_lowpass_case(N=48):
     Upsq = Up**2
     Spsq = Sp**2
 
-    omega = lowpass_oracle(Ap, As, Anr, Lpsq, Upsq)
+    omega = LowpassOracle(Ap, As, Anr, Lpsq, Upsq)
     return omega, Spsq
 
 
-def create_csdlowpass_case(N=48, nnz=8):
+def create_lowpass_q_case(N=48, nnz=8):
     """[summary]
 
     Keyword Arguments:
@@ -118,7 +118,7 @@ def create_csdlowpass_case(N=48, nnz=8):
         [type]: [description]
     """
     omega, Spsq = create_lowpass_case(N)
-    Pcsd = csdlowpass_oracle(nnz, omega)
+    Pcsd = LowpassOracleQ(nnz, omega)
     return Pcsd, Spsq
 
 
@@ -169,7 +169,7 @@ def test_lowpass():
     assert result <= 1194
 
 
-def run_csdlowpass(use_parallel_cut, duration=0.000001):
+def run_lowpass_q(use_parallel_cut, duration=0.000001):
     """[summary]
 
     Arguments:
@@ -188,7 +188,7 @@ def run_csdlowpass(use_parallel_cut, duration=0.000001):
     r0[0] = 0
     ellip = Ell(4.0, r0)
     ellip.use_parallel_cut = use_parallel_cut
-    Pcsd, Spsq = create_csdlowpass_case(N, nnz)
+    Pcsd, Spsq = create_lowpass_q_case(N, nnz)
     options = Options()
     options.max_iter = 20000
     options.tol = 1e-8
@@ -199,9 +199,9 @@ def run_csdlowpass(use_parallel_cut, duration=0.000001):
     return num_iters, h is not None
 
 
-def test_csdlowpass():
+def test_lowpass_q():
     """[summary]"""
-    result, feasible = run_csdlowpass(True)
+    result, feasible = run_lowpass_q(True)
     assert feasible
     assert result >= 1000
     assert result <= 1136
