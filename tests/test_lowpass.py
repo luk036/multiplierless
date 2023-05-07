@@ -4,7 +4,7 @@ from __future__ import print_function
 import time
 
 import numpy as np
-from ellalgo.cutting_plane import Options, cutting_plane_optim, cutting_plane_q
+from ellalgo.cutting_plane import Options, cutting_plane_optim, cutting_plane_optim_q
 from ellalgo.ell import Ell
 
 from multiplierless.lowpass_oracle_q import LowpassOracleQ
@@ -193,7 +193,7 @@ def run_lowpass_q(use_parallel_cut, duration=0.000001):
     options.max_iter = 20000
     options.tol = 1e-8
 
-    h, _, num_iters = cutting_plane_q(Pcsd, ellip, Spsq, options)
+    h, _, num_iters = cutting_plane_optim_q(Pcsd, ellip, Spsq, options)
     time.sleep(duration)
     # h = spectral_fact(r)
     return num_iters, h is not None
