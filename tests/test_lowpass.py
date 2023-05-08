@@ -144,7 +144,7 @@ def run_lowpass(use_parallel_cut, duration=0.000001):
     ellip.use_parallel_cut = use_parallel_cut
     omega, Spsq = create_lowpass_case(N)
     options = Options()
-    options.max_iter = 20000
+    options.max_iters = 20000
     options.tol = 1e-8
     h, _, num_iters = cutting_plane_optim(omega, ellip, Spsq, options)
     time.sleep(duration)
@@ -192,7 +192,7 @@ def run_lowpass_q(use_parallel_cut: bool, duration=0.000001):
     ellip.use_parallel_cut = use_parallel_cut
     Pcsd, Spsq = create_lowpass_q_case(N, nnz)
     options = Options()
-    options.max_iter = 20000
+    options.max_iters = 20000
     options.tol = 1e-8
 
     h, _, num_iters = cutting_plane_optim_q(Pcsd, ellip, Spsq, options)

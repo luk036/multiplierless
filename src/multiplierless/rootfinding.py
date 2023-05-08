@@ -68,7 +68,7 @@ def horner(pa, vr):
 
 
 class Options:
-    max_iter: int = 2000
+    max_iters: int = 2000
     tol: float = 1e-12
 
 
@@ -94,7 +94,7 @@ def pbairstow_even(pa, vrs, options=Options()):
     M = N // 2
     found = False
     converged = [False] * M
-    for niter in range(options.max_iter):
+    for niter in range(options.max_iters):
         tol = 0.0
         for i in filter(lambda i: converged[i] is False, range(M)):  # exclude converged
             vA, pb = horner(pa, vrs[i])
