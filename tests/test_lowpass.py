@@ -6,7 +6,6 @@ import time
 import numpy as np
 from ellalgo.cutting_plane import Options, cutting_plane_optim, cutting_plane_optim_q
 from ellalgo.ell import Ell
-from ellalgo.ell_calc import EllCalcQ
 
 
 from multiplierless.lowpass_oracle_q import LowpassOracleQ
@@ -188,7 +187,7 @@ def run_lowpass_q(use_parallel_cut: bool, duration=0.000001):
 
     r0 = np.zeros(N)  # initial xinit
     r0[0] = 0
-    ellip = Ell(4.0, r0, EllCalcQ)
+    ellip = Ell(4.0, r0)
     ellip.use_parallel_cut = use_parallel_cut
     Pcsd, Spsq = create_lowpass_q_case(N, nnz)
     options = Options()
