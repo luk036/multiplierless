@@ -81,13 +81,13 @@ def create_lowpass_case(N=48):
 
     # passband 0 <= w <= w_pass
     ind_p = np.where(w <= wpass)[0]  # passband
-    Lp = 10 ** (-delta / 20)
-    Up = 10 ** (+delta / 20)
+    Lp = pow(10, -delta / 20)
+    Up = pow(10, +delta / 20)
     Ap = A[ind_p, :]
 
     # stopband (w_stop <= w)
     ind_s = np.where(wstop <= w)[0]  # stopband
-    Sp = 10 ** (delta2 / 20)
+    Sp = pow(10, delta2 / 20)
     As = A[ind_s, :]
 
     # remove redundant contraints
@@ -100,9 +100,9 @@ def create_lowpass_case(N=48):
     ind_end = ind_s[0]
     Anr = A[range(ind_beg + 1, ind_end), :]
 
-    Lpsq = Lp**2
-    Upsq = Up**2
-    Spsq = Sp**2
+    Lpsq = Lp * Lp
+    Upsq = Up * Up
+    Spsq = Sp * Sp
 
     omega = LowpassOracle(Ap, As, Anr, Lpsq, Upsq)
     return omega, Spsq
