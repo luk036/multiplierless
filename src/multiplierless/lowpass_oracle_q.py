@@ -5,7 +5,7 @@ from typing import Tuple, Union
 
 import numpy as np
 
-from .csd import to_csdfixed, to_decimal
+from csdigit.csd import to_csdfixed, to_decimal
 from .spectral_fact import inverse_spectral_fact, spectral_fact
 
 Arr = Union[np.ndarray, float]
@@ -53,6 +53,6 @@ class LowpassOracleQ:
 
         (gc, hc), Spsq2 = self.lowpass.assess_optim(self.rcsd, Spsq)
         # no more alternative cuts?
-        hc += gc @ (self.rcsd - r)
+        hc += gc.dot(self.rcsd - r)
         more_alt = self.lowpass.more_alt and not retry
         return (gc, hc), self.rcsd, Spsq2, more_alt

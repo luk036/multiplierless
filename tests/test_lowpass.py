@@ -9,7 +9,7 @@ from ellalgo.ell import Ell
 
 
 from multiplierless.lowpass_oracle_q import LowpassOracleQ
-from multiplierless.lowpass_oracle import LowpassOracle
+from ellalgo.oracles.lowpass_oracle import LowpassOracle, create_lowpass_case
 
 # Modified from CVX code by Almir Mutapcic in 2006.
 # Adapted in 2010 for impulse response peak-minimization by convex iteration
@@ -45,69 +45,6 @@ from multiplierless.lowpass_oracle import LowpassOracle
 # number of FIR coefficients (including zeroth)
 
 
-# *********************************************************************
-# filter specs (for a low-pass filter)
-# *********************************************************************
-# number of FIR coefficients (including zeroth)
-def create_lowpass_case(N=48):
-    """[summary]
-
-    Keyword Arguments:
-        N (int): [description] (default: {48})
-
-    Returns:
-        [type]: [description]
-    """
-    wpass = 0.12 * np.pi  # end of passband
-    wstop = 0.20 * np.pi  # start of stopband
-    delta0_wpass = 0.025
-    delta0_wstop = 0.125
-    # maximum passband ripple in dB (+/- around 0 dB)
-    delta = 20 * np.log10(1 + delta0_wpass)
-    # stopband attenuation desired in dB
-    delta2 = 20 * np.log10(delta0_wstop)
-
-    # *********************************************************************
-    # optimization parameters
-    # *********************************************************************
-    # rule-of-thumb discretization (from Cheney's Approximation Theory)
-    m = 15 * N
-    w = np.linspace(0, np.pi, m)  # omega
-
-    # A is the matrix used to compute the power spectrum
-    # A(w,:) = [1 2*cos(w) 2*cos(2*w) ... 2*cos(N*w)]
-    An = 2 * np.cos(np.outer(w, np.arange(1, N)))
-    A = np.concatenate((np.ones((m, 1)), An), axis=1)
-
-    # passband 0 <= w <= w_pass
-    ind_p = np.where(w <= wpass)[0]  # passband
-    Lp = pow(10, -delta / 20)
-    Up = pow(10, +delta / 20)
-    Ap = A[ind_p, :]
-
-    # stopband (w_stop <= w)
-    ind_s = np.where(wstop <= w)[0]  # stopband
-    Sp = pow(10, delta2 / 20)
-    As = A[ind_s, :]
-
-    # remove redundant contraints
-    # ind_nr = setdiff(1:m,ind_p)   # fullband less passband
-    # ind_nr = setdiff(ind_nr, ind_s) # luk: for making parallel cut
-    # ind_nr = np.setdiff1d(np.arange(m), ind_p)
-    # ind_nr = np.setdiff1d(ind_nr, ind_s)
-    # Anr = A[ind_nr, :]
-    ind_beg = ind_p[-1]
-    ind_end = ind_s[0]
-    Anr = A[range(ind_beg + 1, ind_end), :]
-
-    Lpsq = Lp * Lp
-    Upsq = Up * Up
-    Spsq = Sp * Sp
-
-    omega = LowpassOracle(Ap, As, Anr, Lpsq, Upsq)
-    return omega, Spsq
-
-
 def create_lowpass_q_case(N=48, nnz=8):
     """[summary]
 
@@ -123,7 +60,7 @@ def create_lowpass_q_case(N=48, nnz=8):
     return Pcsd, Spsq
 
 
-def run_lowpass(use_parallel_cut, duration=0.000001):
+def run_lowpass(use_parallel_cut):
     """[summary]
 
     Arguments:
@@ -146,7 +83,6 @@ def run_lowpass(use_parallel_cut, duration=0.000001):
     options.max_iters = 20000
     options.tol = 1e-8
     h, _, num_iters = cutting_plane_optim(omega, ellip, Spsq, options)
-    time.sleep(duration)
     # h = spectral_fact(r)
     return num_iters, h is not None
 
@@ -166,11 +102,11 @@ def test_lowpass():
     """[summary]"""
     result, feasible = run_lowpass(True)
     assert feasible
-    assert result >= 1083
+    assert result >= 1075
     assert result <= 1194
 
 
-def run_lowpass_q(use_parallel_cut: bool, duration=0.000001):
+def run_lowpass_q(use_parallel_cut: bool):
     """[summary]
 
     Arguments:
@@ -195,7 +131,6 @@ def run_lowpass_q(use_parallel_cut: bool, duration=0.000001):
     options.tol = 1e-8
 
     h, _, num_iters = cutting_plane_optim_q(Pcsd, ellip, Spsq, options)
-    time.sleep(duration)
     # h = spectral_fact(r)
     return num_iters, h is not None
 
