@@ -19,8 +19,6 @@ class LowpassOracleQ:
         [type]: [description]
     """
 
-    rcsd = None
-
     def __init__(self, nnz, lowpass):
         """[summary]
 
@@ -30,6 +28,7 @@ class LowpassOracleQ:
         """
         self.nnz = nnz
         self.lowpass = lowpass
+        self.rcsd = np.array([0])
 
     def assess_optim_q(self, r: Arr, Spsq, retry: bool):
         """[summary]
@@ -44,8 +43,7 @@ class LowpassOracleQ:
         """
         if not retry:  # retry due to no effect in the previous cut
             self.lowpass.retry = False
-            cut, Spsq2 = self.lowpass.assess_optim(r, Spsq)
-            if Spsq2 is None:  # infeasible
+            if cut := self.lowpass.assess_feas(r, Spsq):
                 return cut, r, None, True
             h = spectral_fact(r)
             hcsd = np.array([to_decimal(to_csdfixed(hi, self.nnz)) for hi in h])
@@ -54,5 +52,4 @@ class LowpassOracleQ:
         (gc, hc), Spsq2 = self.lowpass.assess_optim(self.rcsd, Spsq)
         # no more alternative cuts?
         hc += gc.dot(self.rcsd - r)
-        more_alt = self.lowpass.more_alt and not retry
-        return (gc, hc), self.rcsd, Spsq2, more_alt
+        return (gc, hc), self.rcsd, Spsq2, not retry

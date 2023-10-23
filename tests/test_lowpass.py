@@ -1,15 +1,10 @@
-# -*- coding: utf-8 -*-
-from __future__ import print_function
-
-import time
-
 import numpy as np
 from ellalgo.cutting_plane import Options, cutting_plane_optim, cutting_plane_optim_q
 from ellalgo.ell import Ell
 
 
 from multiplierless.lowpass_oracle_q import LowpassOracleQ
-from ellalgo.oracles.lowpass_oracle import LowpassOracle, create_lowpass_case
+from ellalgo.oracles.lowpass_oracle import create_lowpass_case
 
 # Modified from CVX code by Almir Mutapcic in 2006.
 # Adapted in 2010 for impulse response peak-minimization by convex iteration
@@ -60,7 +55,7 @@ def create_lowpass_q_case(N=48, nnz=8):
     return Pcsd, Spsq
 
 
-def run_lowpass(use_parallel_cut):
+def run_lowpass():
     """[summary]
 
     Arguments:
@@ -77,7 +72,6 @@ def run_lowpass(use_parallel_cut):
     r0 = np.zeros(N)  # initial xinit
     r0[0] = 0
     ellip = Ell(4.0, r0)
-    ellip.use_parallel_cut = use_parallel_cut
     omega, Spsq = create_lowpass_case(N)
     options = Options()
     options.max_iters = 20000
@@ -100,13 +94,13 @@ def run_lowpass(use_parallel_cut):
 
 def test_lowpass():
     """[summary]"""
-    result, feasible = run_lowpass(True)
+    result, feasible = run_lowpass()
     assert feasible
     assert result >= 1075
     assert result <= 1194
 
 
-def run_lowpass_q(use_parallel_cut: bool):
+def run_lowpass_q():
     """[summary]
 
     Arguments:
@@ -124,7 +118,6 @@ def run_lowpass_q(use_parallel_cut: bool):
     r0 = np.zeros(N)  # initial xinit
     r0[0] = 0
     ellip = Ell(4.0, r0)
-    ellip.use_parallel_cut = use_parallel_cut
     Pcsd, Spsq = create_lowpass_q_case(N, nnz)
     options = Options()
     options.max_iters = 20000
@@ -137,7 +130,7 @@ def run_lowpass_q(use_parallel_cut: bool):
 
 def test_lowpass_q():
     """[summary]"""
-    result, feasible = run_lowpass_q(True)
+    result, feasible = run_lowpass_q()
     assert feasible
     assert result >= 1000
     assert result <= 1136
