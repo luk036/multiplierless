@@ -41,7 +41,7 @@ def plot_lowpass_result(r, Spsq_new):
 
     freq = [0, 0.12, 0.2, 1.0]
     desired = [1, 0]
-    h_linear = remez(151, freq, desired, Hz=2.)
+    h_linear = remez(151, freq, desired, fs=2.)
     h_min_hom = minimum_phase(h_linear, method='homomorphic')
 
     # fig, axs = plt.subplots(4, figsize=(4, 8))
@@ -125,7 +125,7 @@ if __name__ == "__main__":
     P, Spsq = create_lowpass_case(N)
     options = Options()
     # options.max_it = 50000
-    # options.tol = 1e-11
+    options.tol = 1e-20
     r, Spsq_new, _ = cutting_plane_optim(P, E, Spsq, options)
     assert r is not None
     print(r)
