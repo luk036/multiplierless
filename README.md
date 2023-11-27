@@ -10,6 +10,12 @@
 
 Multiplierless FIR filter design in Python
 
+## Dependencies
+
+- [luk036/csdigit](https://github.com/luk036/csdigit.git)
+- [luk036/bairstow](https://github.com/luk036/bairstow.git)
+- [luk036/ellalgo](https://github.com/luk036/ellalgo.git)
+
 ## Features
 
 - At most one square-root per iteration.
