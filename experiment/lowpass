@@ -125,7 +125,7 @@ if __name__ == "__main__":
     P, Spsq = create_lowpass_case(N)
     options = Options()
     # options.max_it = 50000
-    options.tol = 1e-20
+    options.tolerance = 1e-20
     r, Spsq_new, _ = cutting_plane_optim(P, E, Spsq, options)
     assert r is not None
     print(r)

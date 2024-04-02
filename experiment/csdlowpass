@@ -194,7 +194,7 @@ def main(args):
     N = args.N
     nnz = args.nnz
     options = Options()
-    options.tol = 1e-20
+    options.tolerance = 1e-20
 
     r0 = np.zeros(N)  # initial x0
     r0[0] = 0

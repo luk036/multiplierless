@@ -74,8 +74,8 @@ def run_lowpass():
     ellip = Ell(4.0, r0)
     omega, Spsq = create_lowpass_case(N)
     options = Options()
-    options.max_iters = 20000
-    options.tol = 1e-8
+    options.max_iters = 50000
+    options.tolerance = 1e-14
     h, _, num_iters = cutting_plane_optim(omega, ellip, Spsq, options)
     # h = spectral_fact(r)
     return num_iters, h is not None
@@ -96,8 +96,8 @@ def test_lowpass():
     """[summary]"""
     result, feasible = run_lowpass()
     assert feasible
-    assert result >= 1075
-    assert result <= 1194
+    assert result >= 23144
+    assert result <= 23344
 
 
 def run_lowpass_q():
@@ -121,7 +121,7 @@ def run_lowpass_q():
     Pcsd, Spsq = create_lowpass_q_case(N, nnz)
     options = Options()
     options.max_iters = 20000
-    options.tol = 1e-8
+    options.tolerance = 1e-14
 
     h, _, num_iters = cutting_plane_optim_q(Pcsd, ellip, Spsq, options)
     # h = spectral_fact(r)
@@ -132,5 +132,5 @@ def test_lowpass_q():
     """[summary]"""
     result, feasible = run_lowpass_q()
     assert feasible
-    assert result >= 1000
-    assert result <= 1136
+    assert result >= 3322
+    assert result <= 3522
