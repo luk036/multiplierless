@@ -50,7 +50,8 @@ def create_lowpass_q_case(N=48, nnz=8):
     Returns:
         [type]: [description]
     """
-    omega, Spsq = create_lowpass_case(N)
+    omega = create_lowpass_case(N)
+    Spsq = omega.sp_sq
     Pcsd = LowpassOracleQ(nnz, omega)
     return Pcsd, Spsq
 
@@ -72,7 +73,8 @@ def run_lowpass():
     r0 = np.zeros(N)  # initial xinit
     r0[0] = 0
     ellip = Ell(4.0, r0)
-    omega, Spsq = create_lowpass_case(N)
+    omega = create_lowpass_case(N)
+    Spsq = omega.sp_sq
     options = Options()
     options.max_iters = 50000
     options.tolerance = 1e-14

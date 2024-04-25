@@ -16,7 +16,7 @@ Multiplierless FIR filter design in Python
 - [luk036/bairstow](https://github.com/luk036/bairstow.git)
 - [luk036/ellalgo](https://github.com/luk036/ellalgo.git)
 
-## Features
+## ✨ Features
 
 - At most one square-root per iteration.
 - Include oracles for Matrix Inequalities and Network problems.
@@ -27,7 +27,7 @@ Multiplierless FIR filter design in Python
 
 - The core ellipsoid method depends only on the `ellalgo` and `numpy` modules.
 
-## See also
+## 👀 See also
 
 - [multiplierless-cpp](https://github.com/luk036/multiplierless-cpp)
 - [Presentation Slides](https://luk036.github.io/cvx)

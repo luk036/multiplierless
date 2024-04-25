@@ -43,7 +43,8 @@ class LowpassOracleQ:
         """
         if not retry:  # retry due to no effect in the previous cut
             self.lowpass.retry = False
-            if cut := self.lowpass.assess_feas(r, Spsq):
+            self.lowpass.spsq = Spsq
+            if cut := self.lowpass.assess_feas(r):
                 return cut, r, None, True
             h = spectral_fact(r)
             hcsd = np.array([to_decimal(to_csdfixed(hi, self.nnz)) for hi in h])
