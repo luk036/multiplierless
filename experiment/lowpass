@@ -122,7 +122,8 @@ if __name__ == "__main__":
     # Ae = diag(ones(N,1)) # initial ellipsoid (sphere)
     E = Ell(40., r0)
     # E.use_parallel_cut = False
-    P, Spsq = create_lowpass_case(N)
+    P = create_lowpass_case(N)
+    Spsq = P.sp_sq
     options = Options()
     # options.max_it = 50000
     options.tolerance = 1e-20
