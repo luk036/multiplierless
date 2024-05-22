@@ -173,3 +173,6 @@ MANIFEST
 .venv*/
 .conda*/
 .python-version
+
+# my stuffs
+.hypothesis
