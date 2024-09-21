@@ -69,10 +69,12 @@ def inverse_spectral_fact(h):
         [type]: [description]
     """
     n = len(h)
-    r = np.zeros(n)
-    for t in range(n):
-        r[t] = h[t:] @ h[: n - t]
-    return r
+    # Take bottom-half of the auto-corelation function due to symmetry ???
+    return np.convolve(h, h[::-1])[n - 1 :]
+    # r = np.zeros(n)
+    # for t in range(n):
+    #     r[t] = h[t:] @ h[: n - t]
+    # return r
 
 
 # if __name__ == "__main__":
