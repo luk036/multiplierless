@@ -1,3 +1,25 @@
+"""
+Spectral Factorization Function
+
+This code defines a function called spectral_fact that performs spectral factorization, which is a mathematical technique used in signal processing. The purpose of this function is to find a causal and stable filter from a given autocorrelation sequence.
+
+The function takes one input: r, which is an array representing the autocorrelation sequence of a signal. It processes this input to produce an output h, which is the impulse response of the desired filter.
+
+Here's how the function achieves its purpose:
+
+First, it determines the length of the input sequence and sets up some parameters for oversampling. This oversampling is done to improve the accuracy of the calculations. Then, it computes the power spectral density (PSD) of the input sequence using the Fourier transform.
+
+Next, the function calculates the logarithm of the PSD, which is split into two parts: the magnitude (alpha) and the phase (phi). The phase is computed using the Hilbert transform of the magnitude. This step is crucial because it ensures that the resulting filter will be causal and stable.
+
+After computing these components, the function returns to the original sampling rate by selecting specific indices from the oversampled data. Finally, it combines the magnitude and phase information and applies an inverse Fourier transform to obtain the impulse response of the filter.
+
+The main data transformations happening in this code involve Fourier transforms, logarithmic operations, and the Hilbert transform. These mathematical operations allow the function to move between the time domain (where the autocorrelation sequence lives) and the frequency domain (where the spectral factorization is performed).
+
+It's worth noting that this function uses numpy, a powerful library for numerical computations in Python. Many of the operations, such as the Fourier transforms and array manipulations, are performed using numpy functions, which makes the code more efficient and easier to read.
+
+In summary, this function takes an autocorrelation sequence as input, performs spectral factorization through a series of mathematical transformations, and outputs the impulse response of a causal and stable filter. This type of operation is commonly used in various signal processing applications, such as filter design and signal prediction.
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 
