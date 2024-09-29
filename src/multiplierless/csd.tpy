@@ -104,7 +104,7 @@ def to_decimal(csd_str, debug=False):
     return num
 
 
-def to_csdfixed(num, nnz=4, debug=False):
+def to_csdnnz(num, nnz=4, debug=False):
     """Convert the argument to CSD Format."""
 
     if debug:

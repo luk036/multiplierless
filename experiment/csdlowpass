@@ -6,7 +6,7 @@ from ellalgo.ell import Ell
 from multiplierless.spectral_fact import spectral_fact
 from ellalgo.oracles.lowpass_oracle import create_lowpass_case
 from multiplierless.lowpass_oracle_q import LowpassOracleQ
-from csdigit.csd import to_csdfixed
+from csdigit.csd import to_csdnnz
 
 import argparse
 import logging
@@ -223,7 +223,7 @@ def main(args):
     else:
         Spsqcsd = t
         h_spcsd = spectral_fact(rcsd)
-        h_spcsd_str = [to_csdfixed(hi, nnz) for hi in h_spcsd]
+        h_spcsd_str = [to_csdnnz(hi, nnz) for hi in h_spcsd]
 
         # print(ell_info.num_iters, ell_info.feasible, ell_info.status)
         print(h_spcsd_str)
