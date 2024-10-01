@@ -20,6 +20,7 @@ The output of this code is not a final filter design, but rather an intermediate
 
 This code is part of a larger system for designing digital filters, specifically tailored for situations where multiplication operations need to be avoided. It's a specialized tool that would be used by engineers or researchers working on digital signal processing systems with specific hardware constraints.
 """
+
 from __future__ import print_function
 
 from typing import Tuple, Union
