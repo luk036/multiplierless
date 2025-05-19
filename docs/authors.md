@@ -1,3 +1,4 @@
-# Contributors
-
-- Wai-Shing Luk <luk036@gmail.com>
+```{include} ../AUTHORS.md
+:relative-docs: docs/
+:relative-images:
+```
