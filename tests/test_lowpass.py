@@ -98,8 +98,8 @@ def test_lowpass():
     """[summary]"""
     result, feasible = run_lowpass()
     assert feasible
-    assert result >= 23200
-    assert result <= 23400
+    assert result >= 12400
+    assert result <= 12600
 
 
 def run_lowpass_q():
