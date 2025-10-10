@@ -48,6 +48,14 @@ def fib(n):
 
     Returns:
       int: n-th Fibonacci number
+
+    Examples:
+        >>> fib(1)
+        1
+        >>> fib(2)
+        1
+        >>> fib(7)
+        13
     """
     assert n > 0
     a, b = 1, 1

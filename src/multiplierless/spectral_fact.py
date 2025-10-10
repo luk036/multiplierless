@@ -35,6 +35,14 @@ def spectral_fact(r):
 
     Returns:
         numpy.ndarray: The impulse response that gives the desired auto-correlation.
+
+    Examples:
+        >>> r = np.array([1.0, 0.5, 0.2])
+        >>> h = spectral_fact(r.reshape(-1, 1))
+        >>> isinstance(h, np.ndarray)
+        True
+        >>> h.shape == (r.shape[0], r.shape[0])
+        True
     """
 
     # length of the impulse response sequence
@@ -89,6 +97,14 @@ def inverse_spectral_fact(h):
 
     Returns:
         numpy.ndarray: The auto-correlation sequence, where the length is the same as the input impulse response.
+
+    Examples:
+        >>> h = np.array([1.0, 0.5, 0.2])
+        >>> r = inverse_spectral_fact(h)
+        >>> isinstance(r, np.ndarray)
+        True
+        >>> r.shape == (len(h),)
+        True
     """
     n = len(h)
     # Take bottom-half of the auto-corelation function due to symmetry ???

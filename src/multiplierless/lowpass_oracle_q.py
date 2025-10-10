@@ -42,11 +42,11 @@ class LowpassOracleQ:
     """
 
     def __init__(self, nnz, lowpass):
-        """[summary]
+        """Initializes the LowpassOracleQ object.
 
-        Arguments:
-            nnz ([type]): [description]
-            lowpass ([type]): [description]
+        Args:
+            nnz (int): The number of non-zero elements allowed in the CSD representation.
+            lowpass (object): An object representing the lowpass filter, expected to have `assess_feas` and `assess_optim` methods.
         """
         self.nnz = nnz
         self.lowpass = lowpass
@@ -54,15 +54,15 @@ class LowpassOracleQ:
         self.num_retries = 0
 
     def assess_optim_q(self, r: Arr, Spsq, retry: bool):
-        """[summary]
+        """Assesses and optimizes the lowpass filter design with CSD constraints.
 
-        Arguments:
-            r (Arr): [description]
-            Spsq ([type]): [description]
-            retry (int): [description]
+        Args:
+            r (Arr): An array of numbers representing the filter coefficients.
+            Spsq (float): A value related to the filter's frequency response.
+            retry (bool): A boolean indicating whether this is a retry attempt.
 
         Returns:
-            [type]: [description]
+            Tuple: A tuple containing the optimized filter coefficients, the CSD representation of the filter, an updated frequency response, and a boolean indicating whether further retries are possible.
         """
         if not retry:  # retry due to no effect in the previous cut
             # self.lowpass.retry = False
