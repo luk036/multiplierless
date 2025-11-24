@@ -20,6 +20,47 @@ The function uses several mathematical operations like Fourier transforms, logar
 The inverse_spectral_fact function does the opposite of spectral_fact. It takes the impulse response h as input and attempts to reconstruct the original auto-correlation coefficients. This function is simpler and uses a mathematical operation called convolution to compute its result.
 
 Overall, this code provides tools for working with signal processing problems, particularly those involving auto-correlations and impulse responses. It's useful in fields like audio processing, communications, and data analysis where understanding the relationships between data points over time is important.
+
+Spectral Factorization Process Diagram::
+
+    ```svgbob
+           Auto-correlation
+                 |
+                 v
+        +-------------------+
+        |  Oversampling     |
+        +-------------------+
+                 |
+                 v
+        +-------------------+
+        | Log computation   |
+        |  alpha(w) = 1/2*  |
+        |  ln(R(w))         |
+        +-------------------+
+                 |
+                 v
+        +-------------------+
+        | Hilbert Transform |
+        |  phi(w) = H[alpha]|
+        +-------------------+
+                 |
+                 v
+        +-------------------+
+        | Complex Rep.      |
+        |  H(exp(jTw)) =    |
+        |  alpha(w) + j*phi |
+        +-------------------+
+                 |
+                 v
+        +-------------------+
+        | Inverse FFT       |
+        |  (Time Domain)    |
+        +-------------------+
+                 |
+                 v
+         Impulse Response
+    ```
+
 """
 
 import numpy as np

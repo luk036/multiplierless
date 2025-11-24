@@ -1,4 +1,48 @@
 # -*- coding: utf-8 -*-
+"""
+Lowpass Oracle Process
+
+This module implements the LowpassOracle class which handles constraints for lowpass filter design in the frequency domain. The process involves several constraint checks in a specific order to optimize the filter design iteratively.
+
+Lowpass Oracle Decision Process:
+```svgbob
+    Filter Coefficients (x)
+           |
+           v
+    +-------------------+ No
+    | Non-negative Real |----->|
+    | Constraint Violated|     |
+    +-------------------+     |
+           |Yes               |
+           v                   v
+    +-------------------+ Yes |
+    | Passband Constraints|----->|
+    | (Ap @ x)          |     | |
+    +-------------------+     | |
+           |No               | |
+           v                  | |
+    +-------------------+ Yes | |
+    | Stopband Constraint|----->| |
+    | (As @ x)          |     | |
+    +-------------------+     | |
+           |No               | |
+           v                  | |
+    +-------------------+ Yes | |
+    | Other Frequency   |----->| |
+    | Constraints       |     | |
+    +-------------------+     | |
+           |No               | |
+           v                  | |
+    +-------------------+     | |
+    | Objective Function|<----| |
+    | (Update Spsq)     |       |
+    +-------------------+       |
+           |                    |
+           |<-------------------|
+           v
+    Updated Filter Design
+```
+"""
 from __future__ import print_function
 
 from itertools import chain

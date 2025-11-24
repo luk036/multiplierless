@@ -19,6 +19,40 @@ The code uses several mathematical operations and transformations, including spe
 The output of this code is not a final filter design, but rather an intermediate step in an iterative optimization process. It provides updated filter coefficients and frequency response characteristics that can be used in further iterations of the design process.
 
 This code is part of a larger system for designing digital filters, specifically tailored for situations where multiplication operations need to be avoided. It's a specialized tool that would be used by engineers or researchers working on digital signal processing systems with specific hardware constraints.
+
+Multiplierless Filter Design Process::
+
+    ```svgbob
+        Filter Coefficients (r)
+               |
+               v
+        +-------------------+
+        | Spectral Fact.    |
+        | (r -> h)          |
+        +-------------------+
+               |
+               v
+        +-------------------+
+        | CSD Conversion    |
+        | (h -> h_csd)      |
+        +-------------------+
+               |
+               v
+        +-------------------+
+        | Inv. Spectral     |
+        | Fact. (h_csd -> r)|
+        +-------------------+
+               |
+               v
+        +-------------------+
+        | Lowpass Oracle    |
+        | Optimization      |
+        +-------------------+
+               |
+               v
+        Optimized Filter
+    ```
+
 """
 
 from __future__ import print_function

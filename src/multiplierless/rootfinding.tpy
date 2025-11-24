@@ -1,3 +1,48 @@
+"""
+Root Finding with Bairstow's Method
+
+This module implements Bairstow's method for finding roots of polynomials. This is particularly useful for spectral factorization where we need to find polynomial roots to factorize the spectrum.
+
+Bairstow's Method Process:
+```svgbob
+    Polynomial Coefficients
+           |
+           v
+    +-------------------+
+    | Initial Guess     |
+    | (using sum of     |
+    |  coefficients)    |
+    +-------------------+
+           |
+           v
+    +-------------------+
+    | Iterative         |
+    | Quadratic Factor  |
+    | (r, q)            |
+    +-------------------+
+           |
+           v
+    +-------------------+
+    | Newton-Raphson    |
+    | Update            |
+    +-------------------+
+           |
+           v
+    +-------------------+ No  +-------------+
+    | Converged?        |---->| Increase    |
+    +-------------------+     | Iteration   |
+           |Yes               | Counter     |
+           v                  +-------------+
+    +-------------------+         |
+    | Extract Quadratic |         |
+    | Root Pairs        |<--------|
+    +-------------------+
+           |
+           v
+    Individual Roots
+```
+"""
+
 from math import acos, cos, pow, sqrt
 
 from .matrix2 import matrix2

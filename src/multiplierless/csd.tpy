@@ -10,6 +10,39 @@
  Where: '+' is +1
         '-' is -1
 
+ CSD Conversion Process::
+
+    ```svgbob
+        Decimal Number
+             |
+             v
+       +----------------+
+       | Find Power of 2|
+       | Closest to Num |
+       +----------------+
+             |
+             v
+       +----------------+
+       | Subtract & Mark|
+       | (+, -, or 0)   |
+       +----------------+
+             |
+             v
+       +----------------+
+       | Repeat for     |
+       | Remaining Value|
+       +----------------+
+             |
+             v
+         CSD String
+             |
+             v
+       +----------------+
+       | Verification   |
+       | (CSD to Decimal)|
+       +----------------+
+    ```
+
  Harnesser
  License: GPL2
 """

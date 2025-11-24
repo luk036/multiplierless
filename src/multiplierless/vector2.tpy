@@ -1,3 +1,37 @@
+"""
+2D Vector Operations
+
+This module implements a simple 2D vector class with common vector operations.
+
+Vector Operations Visualization::
+
+    ```svgbob
+        2D Vector (x, y)
+        +----------+
+        | vector2  |
+        | x: float |
+        | y: float | 
+        +----------+
+             |
+             | Operations
+             v
+        +---------+---------+---------+---------+
+        |  Add    |  Sub    |  Mul    |  Dot    |
+        |  (a+b)  |  (a-b)  |  (a*k)  | (a.b)   |
+        +---------+---------+---------+---------+
+
+    Vector Addition Example::
+
+        v1 = (x1, y1)    v2 = (x2, y2)
+             |                |
+             +--------+-------+
+                      |
+                      v
+             v1 + v2 = (x1+x2, y1+y2)
+    ```
+
+"""
+
 class vector2:
     __slots__ = ("_x", "_y")
 
