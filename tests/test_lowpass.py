@@ -83,18 +83,18 @@ def run_lowpass():
     return num_iters, h is not None
 
 
-# def test_no_parallel_cut(benchmark):
+# def test_no_parallel_cut(benchmark) -> None:
 #     result, feasible = benchmark(run_lowpass, False)
 #     assert feasible
 #     assert result >= 13334
 
-# def test_w_parallel_cut(benchmark):
+# def test_w_parallel_cut(benchmark) -> None:
 #     result, feasible = benchmark(run_lowpass, True)
 #     assert feasible
 #     assert result <= 568
 
 
-def test_lowpass():
+def test_lowpass() -> None:
     """[summary]"""
     result, feasible = run_lowpass()
     assert feasible
@@ -130,7 +130,7 @@ def run_lowpass_q():
     return num_iters, h is not None
 
 
-def test_lowpass_q():
+def test_lowpass_q() -> None:
     """[summary]"""
     result, feasible = run_lowpass_q()
     assert feasible

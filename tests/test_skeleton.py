@@ -7,7 +7,7 @@ __copyright__ = "Wai-Shing Luk"
 __license__ = "MIT"
 
 
-def test_fib():
+def test_fib() -> None:
     """API Tests"""
     assert fib(1) == 1
     assert fib(2) == 1
@@ -16,7 +16,7 @@ def test_fib():
         fib(-10)
 
 
-def test_main(capsys):
+def test_main(capsys: pytest.CaptureFixture) -> None:
     """CLI Tests"""
     # capsys is a pytest fixture that allows asserts agains stdout/stderr
     # https://docs.pytest.org/en/stable/capture.html

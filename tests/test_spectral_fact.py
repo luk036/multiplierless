@@ -3,7 +3,7 @@ from pytest import approx
 from multiplierless.spectral_fact import spectral_fact, inverse_spectral_fact
 
 
-def test_spectral_fact():
+def test_spectral_fact() -> None:
     h = np.array(
         [
             0.76006445,

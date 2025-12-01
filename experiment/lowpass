@@ -109,7 +109,7 @@ def plot_lowpass_result(r, Spsq_new):
 # rand('twister',sum(100*clock))
 # randn('state',sum(100*clock))
 
-# def test_lowpass():
+# def test_lowpass() -> None:
 if __name__ == "__main__":
     # tic = time.time()
     N = 48
