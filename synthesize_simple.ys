@@ -1,0 +1,25 @@
+# Yosys synthesis script for FIR filter (simplified)
+
+# Read the Verilog design
+read_verilog fir_filter_simple.v
+
+# Hierarchical design preparation
+hierarchy -check -top fir_filter
+
+# Convert high-level constructs to basic logic elements
+proc; opt; memory; opt; techmap; opt
+
+# Generic synthesis (without specific technology library)
+abc
+
+# Clean up and optimize
+clean
+
+# Generate statistics
+stat
+
+# Write the synthesized netlist
+write_verilog -noattr fir_filter_synth.v
+
+# Write JSON representation for further analysis
+write_json fir_filter_synth.json

@@ -39,7 +39,7 @@ elseif  nb>na
      npar=nb;
 elseif na==nb
     npar=na;
-        
+
 end
 dc=dc(1:npar)
 %normalised version

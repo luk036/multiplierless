@@ -1,0 +1,244 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.signal import remez, freqz, group_delay
+from ellalgo.cutting_plane import Options, cutting_plane_optim, cutting_plane_optim_q
+from ellalgo.ell import Ell
+from multiplierless.spectral_fact import spectral_fact
+from ellalgo.oracles.lowpass_oracle import create_lowpass_case
+from multiplierless.lowpass_oracle_q import LowpassOracleQ
+from csdigit.csd import to_csdnnz
+
+import argparse
+import logging
+import sys
+
+from ellalgo import __version__
+
+__author__ = "Wai-Shing Luk"
+__copyright__ = "Wai-Shing Luk"
+__license__ = "mit"
+
+_logger = logging.getLogger(__name__)
+
+
+def create_csdlowpass_case(N=48, nnz=8):
+    """[summary]
+
+    Keyword Arguments:
+        N (int): [description] (default: {48})
+        nnz (int): [description] (default: {8})
+
+    Returns:
+        [type]: [description]
+    """
+    P = create_lowpass_case(N)
+    Spsq = P.sp_sq
+    Pcsd = LowpassOracleQ(nnz, P)
+    return Pcsd, Spsq
+
+
+def plot_lowpass_result(rf, Spsqf, rcsd, Spsqcsd):
+    # *********************************************************************
+    # plotting routines
+    # *********************************************************************
+    # frequency response of the designed filter, where j = sqrt(-1)
+    h_spf = spectral_fact(rf)  # from CVX distribution, Examples subdirectory
+    h_spcsd = spectral_fact(rcsd)
+    # I'm not sure how accurate this function performs!!!
+    hf = h_spf
+    print("h = ", hf)
+    # compute the min attenuation in the stopband (convert to original vars)
+    Ustop = 20 * np.log10(np.sqrt(Spsqf))
+
+    print('Min attenuation in the stopband is ', Ustop, ' dB.')
+
+    freq = [0, 0.12, 0.2, 1.0]
+    desired = [1, 0]
+    h_linear = remez(151, freq, desired, fs=2.)
+    # h_min_hom = minimum_phase(h_linear, method='homomorphic')
+
+    # fig, axs = plt.subplots(4, figsize=(4, 8))
+    fig = plt.figure()
+    ax1 = fig.add_subplot(221)
+    ax2 = fig.add_subplot(222)
+    ax3 = fig.add_subplot(223)
+    ax4 = fig.add_subplot(224)
+    axs = (ax1, ax2, ax3, ax4)
+    for h, style, color in zip((h_spcsd, h_spf), ('-', '-'), ('k', 'r')):
+        # if feasible:
+        w, H = freqz(h)
+        w, gd = group_delay((h, 1))
+        w /= np.pi
+        axs[0].plot(h, color=color, linestyle=style)
+        axs[1].plot(w, np.abs(H), color=color, linestyle=style)
+        axs[2].plot(w,
+                    20 * np.log10(np.abs(H)),
+                    color=color,
+                    linestyle=style)
+        axs[3].plot(w, gd, color=color, linestyle=style)
+
+    for ax in axs:
+        ax.grid(True, color='0.5')
+        ax.fill_between(freq[1:3], *ax.get_ylim(), color='#ffeeaa', zorder=1)
+
+    axs[0].set(xlim=[0, len(h_linear) - 1],
+               ylabel='Amplitude',
+               xlabel='Samples')
+    axs[1].legend(['Our(csd)', 'Our'], title='Phase')
+    for ax, ylim in zip(axs[1:], ([0, 1.1], [-80, 10], [-60, 60])):
+        ax.set(xlim=[0, 1], ylim=ylim, xlabel='Frequency')
+    axs[1].set(ylabel='Magnitude')
+    axs[2].set(ylabel='Magnitude (dB)')
+    axs[3].set(ylabel='Group delay')
+    plt.tight_layout()
+    plt.show()
+
+
+# Modified from CVX code by Almir Mutapcic in 2006.
+# Adapted in 2010 for impulse response peak-minimization by convex iteration
+# by Christine Law.
+#
+# "FIR Filter Design via Spectral Factorization and Convex Optimization"
+# by S.-P. Wu, S. Boyd, and L. Vandenberghe
+#
+# Designs an FIR lowpass filter using spectral factorization method with
+# constraint on maximum passband ripple and stopband attenuation:
+#
+#   minimize   max |H(w)|                      for w in stopband
+#       s.t.   1/delta <= |H(w)| <= delta      for w in passband
+#
+# We change variables via spectral factorization method and get:
+#
+#   minimize   max R(w)                          for w in stopband
+#       s.t.   (1/delta)**2 <= R(w) <= delta**2  for w in passband
+#              R(w) >= 0                         for all w
+#
+# where R(w) is squared magnitude frequency response
+# (and Fourier transform of autocorrelation coefficients r).
+# Variables are coeffients r and G = hh' where h is impulse response.
+# delta is allowed passband ripple.
+# This is a convex problem (can be formulated as an SDP after sampling).
+
+# *********************************************************************
+# filter specs (for a low-pass filter)
+# *********************************************************************
+# number of FIR coefficients (including zeroth)
+
+
+def parse_args(args):
+    """Parse command line parameters
+
+    Args:
+      args ([str]): command line parameters as list of strings
+
+    Returns:
+      :obj:`argparse.Namespace`: command line parameters namespace
+    """
+    parser = argparse.ArgumentParser(
+        description="Multiplierless FIR optimization demonstration")
+    parser.add_argument("--version",
+                        action="version",
+                        version="Multiplierless {ver}".format(ver=__version__))
+    parser.add_argument(dest="N",
+                        help="number of filter Tags",
+                        type=int,
+                        metavar="INT")
+    parser.add_argument(dest="nnz",
+                        help="number of non-zeros",
+                        type=int,
+                        metavar="INT")
+    parser.add_argument("-v",
+                        "--verbose",
+                        dest="loglevel",
+                        help="set loglevel to INFO",
+                        action="store_const",
+                        const=logging.INFO)
+    parser.add_argument("-vv",
+                        "--very-verbose",
+                        dest="loglevel",
+                        help="set loglevel to DEBUG",
+                        action="store_const",
+                        const=logging.DEBUG)
+    parser.add_argument("-p",
+                        "--plot",
+                        dest="plot",
+                        help="plot the result graphically",
+                        action="store_const",
+                        const=True)
+    return parser.parse_args(args)
+
+
+def setup_logging(loglevel):
+    """Setup basic logging
+
+    Args:
+      loglevel (int): minimum loglevel for emitting messages
+    """
+    logformat = "[%(asctime)s] %(levelname)s:%(name)s:%(message)s"
+    logging.basicConfig(level=loglevel,
+                        stream=sys.stdout,
+                        format=logformat,
+                        datefmt="%Y-%m-%d %H:%M:%S")
+
+
+def main(args):
+    """Main entry point allowing external calls
+
+    Args:
+      args ([str]): command line parameter list
+    """
+    args = parse_args(args)
+    setup_logging(args.loglevel)
+    _logger.debug("Starting crazy calculations...")
+    # print("The {}-th Fibonacci number is {}".format(args.n, fib(args.n)))
+
+    N = args.N
+    nnz = args.nnz
+    options = Options()
+    options.tolerance = 1e-20
+
+    r0 = np.zeros(N)  # initial x0
+    r0[0] = 0
+    E = Ell(40., r0)
+    P = create_lowpass_case(N)
+    Spsq = P.sp_sq
+    rf, t, _ = cutting_plane_optim(P, E, Spsq, options)
+
+    if rf is None:
+        _logger.error("Configuration is not feasible")
+    else:
+        Spsqf = t
+        hf = spectral_fact(rf)
+        # print(ell_info.num_iters, ell_info.feasible, ell_info.status)
+        print(hf)
+
+    r0 = np.zeros(N)  # initial x0
+    r0[0] = 0
+    E = Ell(40., r0)
+    P, Spsq = create_csdlowpass_case(N, nnz)
+    rcsd, t, _ = cutting_plane_optim_q(P, E, Spsq, options)
+
+    if rcsd is None:
+        _logger.error("Configuration is not feasible")
+    else:
+        Spsqcsd = t
+        h_spcsd = spectral_fact(rcsd)
+        h_spcsd_str = [to_csdnnz(hi, nnz) for hi in h_spcsd]
+
+        # print(ell_info.num_iters, ell_info.feasible, ell_info.status)
+        print(h_spcsd_str)
+        # assert ell_info.feasible
+        if args.plot:
+            plot_lowpass_result(rf, Spsqf, rcsd, Spsqcsd)
+
+    _logger.info("Script ends here")
+
+
+def run():
+    """Entry point for console_scripts
+    """
+    main(sys.argv[1:])
+
+
+if __name__ == "__main__":
+    run()

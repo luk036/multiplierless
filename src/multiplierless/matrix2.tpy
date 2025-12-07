@@ -10,7 +10,7 @@ Matrix Visualization::
         +-------+-------+
         | a11   | a12   |  <-- vector2 (row1)
         +-------+-------+
-        | a21   | a22   |  <-- vector2 (row2) 
+        | a21   | a22   |  <-- vector2 (row2)
         +-------+-------+
              |
              | Matrix Operations

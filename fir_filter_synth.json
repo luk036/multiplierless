@@ -1,0 +1,335 @@
+{
+  "creator": "Yosys 0.60 (git sha1 5bafeb77dc71e054fa331ab9efa613e6fb0a1c49, g++-12 12.3.0-1ubuntu1~22.04.2 -fPIC -O3)",
+  "modules": {
+    "fir_filter": {
+      "attributes": {
+        "dynports": "00000000000000000000000000000001",
+        "top": "00000000000000000000000000000001",
+        "src": "fir_filter_flat.v:1.1-213.10"
+      },
+      "parameter_default_values": {
+        "ACC_WIDTH": "00000000000000000000000000100000",
+        "COEF_WIDTH": "00000000000000000000000000010000",
+        "DATA_WIDTH": "00000000000000000000000000010000",
+        "TAPS": "00000000000000000000000000100000"
+      },
+      "ports": {
+        "clk": {
+          "direction": "input",
+          "bits": [ 2 ]
+        },
+        "rst_n": {
+          "direction": "input",
+          "bits": [ 3 ]
+        },
+        "data_in": {
+          "direction": "input",
+          "bits": [ 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 ]
+        },
+        "data_out": {
+          "direction": "output",
+          "bits": [ "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x" ]
+        },
+        "valid_out": {
+          "direction": "output",
+          "bits": [ "0" ]
+        }
+      },
+      "cells": {
+      },
+      "netnames": {
+        "clk": {
+          "hide_name": 0,
+          "bits": [ 2 ],
+          "attributes": {
+            "src": "fir_filter_flat.v:7.11-7.14"
+          }
+        },
+        "coef_0": {
+          "hide_name": 0,
+          "bits": [ "1", "1", "1", "1", "1", "0", "0", "1", "1", "0", "0", "0", "0", "0", "0", "0" ],
+          "signed": 1,
+          "attributes": {
+            "src": "fir_filter_flat.v:56.34-56.40"
+          }
+        },
+        "coef_1": {
+          "hide_name": 0,
+          "bits": [ "1", "1", "0", "0", "0", "1", "1", "1", "0", "0", "1", "0", "0", "0", "0", "0" ],
+          "signed": 1,
+          "attributes": {
+            "src": "fir_filter_flat.v:57.34-57.40"
+          }
+        },
+        "coef_10": {
+          "hide_name": 0,
+          "bits": [ "0", "0", "0", "1", "1", "1", "0", "0", "1", "1", "0", "1", "0", "0", "0", "0" ],
+          "signed": 1,
+          "attributes": {
+            "src": "fir_filter_flat.v:66.34-66.41"
+          }
+        },
+        "coef_11": {
+          "hide_name": 0,
+          "bits": [ "1", "1", "1", "0", "0", "0", "0", "1", "0", "1", "1", "0", "0", "0", "0", "0" ],
+          "signed": 1,
+          "attributes": {
+            "src": "fir_filter_flat.v:67.34-67.41"
+          }
+        },
+        "coef_12": {
+          "hide_name": 0,
+          "bits": [ "1", "1", "1", "0", "1", "0", "1", "1", "1", "0", "0", "0", "0", "0", "0", "0" ],
+          "signed": 1,
+          "attributes": {
+            "src": "fir_filter_flat.v:68.34-68.41"
+          }
+        },
+        "coef_13": {
+          "hide_name": 0,
+          "bits": [ "1", "1", "0", "0", "1", "0", "1", "1", "1", "0", "1", "1", "1", "1", "1", "1" ],
+          "signed": 1,
+          "attributes": {
+            "src": "fir_filter_flat.v:69.34-69.41"
+          }
+        },
+        "coef_14": {
+          "hide_name": 0,
+          "bits": [ "1", "0", "1", "0", "0", "1", "1", "1", "0", "1", "0", "1", "1", "1", "1", "1" ],
+          "signed": 1,
+          "attributes": {
+            "src": "fir_filter_flat.v:70.34-70.41"
+          }
+        },
+        "coef_15": {
+          "hide_name": 0,
+          "bits": [ "0", "1", "0", "0", "0", "1", "1", "0", "1", "0", "0", "1", "1", "1", "1", "1" ],
+          "signed": 1,
+          "attributes": {
+            "src": "fir_filter_flat.v:71.34-71.41"
+          }
+        },
+        "coef_16": {
+          "hide_name": 0,
+          "bits": [ "1", "1", "1", "1", "1", "0", "1", "0", "1", "0", "0", "1", "1", "1", "1", "1" ],
+          "signed": 1,
+          "attributes": {
+            "src": "fir_filter_flat.v:72.34-72.41"
+          }
+        },
+        "coef_17": {
+          "hide_name": 0,
+          "bits": [ "0", "1", "0", "0", "0", "1", "0", "1", "0", "1", "0", "1", "1", "1", "1", "1" ],
+          "signed": 1,
+          "attributes": {
+            "src": "fir_filter_flat.v:73.34-73.41"
+          }
+        },
+        "coef_18": {
+          "hide_name": 0,
+          "bits": [ "0", "1", "1", "0", "1", "1", "0", "1", "0", "0", "1", "1", "1", "1", "1", "1" ],
+          "signed": 1,
+          "attributes": {
+            "src": "fir_filter_flat.v:74.34-74.41"
+          }
+        },
+        "coef_19": {
+          "hide_name": 0,
+          "bits": [ "1", "1", "0", "1", "0", "0", "0", "0", "1", "1", "1", "1", "1", "1", "1", "1" ],
+          "signed": 1,
+          "attributes": {
+            "src": "fir_filter_flat.v:75.34-75.41"
+          }
+        },
+        "coef_2": {
+          "hide_name": 0,
+          "bits": [ "1", "0", "0", "0", "0", "1", "1", "1", "1", "1", "1", "0", "0", "0", "0", "0" ],
+          "signed": 1,
+          "attributes": {
+            "src": "fir_filter_flat.v:58.34-58.40"
+          }
+        },
+        "coef_20": {
+          "hide_name": 0,
+          "bits": [ "0", "1", "0", "1", "0", "1", "0", "0", "1", "0", "0", "0", "0", "0", "0", "0" ],
+          "signed": 1,
+          "attributes": {
+            "src": "fir_filter_flat.v:76.34-76.41"
+          }
+        },
+        "coef_21": {
+          "hide_name": 0,
+          "bits": [ "0", "1", "1", "1", "1", "1", "0", "1", "0", "1", "0", "0", "0", "0", "0", "0" ],
+          "signed": 1,
+          "attributes": {
+            "src": "fir_filter_flat.v:77.34-77.41"
+          }
+        },
+        "coef_22": {
+          "hide_name": 0,
+          "bits": [ "0", "0", "1", "0", "0", "0", "0", "1", "1", "1", "0", "0", "0", "0", "0", "0" ],
+          "signed": 1,
+          "attributes": {
+            "src": "fir_filter_flat.v:78.34-78.41"
+          }
+        },
+        "coef_23": {
+          "hide_name": 0,
+          "bits": [ "0", "0", "1", "1", "0", "1", "1", "0", "1", "1", "0", "0", "0", "0", "0", "0" ],
+          "signed": 1,
+          "attributes": {
+            "src": "fir_filter_flat.v:79.34-79.41"
+          }
+        },
+        "coef_24": {
+          "hide_name": 0,
+          "bits": [ "0", "0", "1", "0", "0", "0", "1", "1", "0", "1", "0", "0", "0", "0", "0", "0" ],
+          "signed": 1,
+          "attributes": {
+            "src": "fir_filter_flat.v:80.34-80.41"
+          }
+        },
+        "coef_25": {
+          "hide_name": 0,
+          "bits": [ "1", "0", "1", "0", "1", "0", "0", "1", "1", "0", "0", "0", "0", "0", "0", "0" ],
+          "signed": 1,
+          "attributes": {
+            "src": "fir_filter_flat.v:81.34-81.41"
+          }
+        },
+        "coef_26": {
+          "hide_name": 0,
+          "bits": [ "0", "1", "1", "1", "0", "1", "1", "0", "0", "0", "0", "0", "0", "0", "0", "0" ],
+          "signed": 1,
+          "attributes": {
+            "src": "fir_filter_flat.v:82.34-82.41"
+          }
+        },
+        "coef_27": {
+          "hide_name": 0,
+          "bits": [ "0", "0", "0", "0", "1", "1", "1", "0", "1", "1", "1", "1", "1", "1", "1", "1" ],
+          "signed": 1,
+          "attributes": {
+            "src": "fir_filter_flat.v:83.34-83.41"
+          }
+        },
+        "coef_28": {
+          "hide_name": 0,
+          "bits": [ "1", "1", "0", "0", "0", "0", "1", "1", "0", "1", "1", "1", "1", "1", "1", "1" ],
+          "signed": 1,
+          "attributes": {
+            "src": "fir_filter_flat.v:84.34-84.41"
+          }
+        },
+        "coef_29": {
+          "hide_name": 0,
+          "bits": [ "0", "1", "0", "0", "0", "0", "0", "1", "0", "1", "1", "1", "1", "1", "1", "1" ],
+          "signed": 1,
+          "attributes": {
+            "src": "fir_filter_flat.v:85.34-85.41"
+          }
+        },
+        "coef_3": {
+          "hide_name": 0,
+          "bits": [ "0", "0", "1", "1", "1", "1", "0", "0", "1", "1", "0", "1", "0", "0", "0", "0" ],
+          "signed": 1,
+          "attributes": {
+            "src": "fir_filter_flat.v:59.34-59.40"
+          }
+        },
+        "coef_30": {
+          "hide_name": 0,
+          "bits": [ "1", "1", "1", "1", "0", "0", "0", "1", "0", "1", "1", "1", "1", "1", "1", "1" ],
+          "signed": 1,
+          "attributes": {
+            "src": "fir_filter_flat.v:86.34-86.41"
+          }
+        },
+        "coef_31": {
+          "hide_name": 0,
+          "bits": [ "0", "1", "0", "1", "1", "1", "0", "0", "0", "1", "1", "1", "1", "1", "1", "1" ],
+          "signed": 1,
+          "attributes": {
+            "src": "fir_filter_flat.v:87.34-87.41"
+          }
+        },
+        "coef_4": {
+          "hide_name": 0,
+          "bits": [ "1", "0", "1", "1", "0", "0", "0", "1", "0", "1", "1", "1", "0", "0", "0", "0" ],
+          "signed": 1,
+          "attributes": {
+            "src": "fir_filter_flat.v:60.34-60.40"
+          }
+        },
+        "coef_5": {
+          "hide_name": 0,
+          "bits": [ "0", "0", "1", "1", "0", "0", "1", "0", "1", "0", "0", "0", "1", "0", "0", "0" ],
+          "signed": 1,
+          "attributes": {
+            "src": "fir_filter_flat.v:61.34-61.40"
+          }
+        },
+        "coef_6": {
+          "hide_name": 0,
+          "bits": [ "0", "1", "0", "1", "1", "1", "1", "1", "0", "1", "0", "0", "1", "0", "0", "0" ],
+          "signed": 1,
+          "attributes": {
+            "src": "fir_filter_flat.v:62.34-62.40"
+          }
+        },
+        "coef_7": {
+          "hide_name": 0,
+          "bits": [ "1", "0", "1", "1", "1", "0", "1", "0", "1", "1", "0", "0", "1", "0", "0", "0" ],
+          "signed": 1,
+          "attributes": {
+            "src": "fir_filter_flat.v:63.34-63.40"
+          }
+        },
+        "coef_8": {
+          "hide_name": 0,
+          "bits": [ "1", "1", "1", "0", "0", "0", "0", "0", "0", "1", "0", "0", "1", "0", "0", "0" ],
+          "signed": 1,
+          "attributes": {
+            "src": "fir_filter_flat.v:64.34-64.40"
+          }
+        },
+        "coef_9": {
+          "hide_name": 0,
+          "bits": [ "0", "0", "0", "0", "0", "0", "1", "0", "1", "1", "1", "1", "0", "0", "0", "0" ],
+          "signed": 1,
+          "attributes": {
+            "src": "fir_filter_flat.v:65.34-65.40"
+          }
+        },
+        "data_in": {
+          "hide_name": 0,
+          "bits": [ 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 ],
+          "attributes": {
+            "src": "fir_filter_flat.v:9.28-9.35"
+          }
+        },
+        "data_out": {
+          "hide_name": 0,
+          "bits": [ "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x" ],
+          "attributes": {
+            "src": "fir_filter_flat.v:10.29-10.37"
+          }
+        },
+        "rst_n": {
+          "hide_name": 0,
+          "bits": [ 3 ],
+          "attributes": {
+            "src": "fir_filter_flat.v:8.11-8.16"
+          }
+        },
+        "valid_out": {
+          "hide_name": 0,
+          "bits": [ "0" ],
+          "attributes": {
+            "src": "fir_filter_flat.v:11.12-11.21"
+          }
+        }
+      }
+    }
+  }
+}

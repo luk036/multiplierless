@@ -10,7 +10,7 @@ Vector Operations Visualization::
         +----------+
         | vector2  |
         | x: float |
-        | y: float | 
+        | y: float |
         +----------+
              |
              | Operations
