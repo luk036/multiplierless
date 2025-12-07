@@ -40,7 +40,7 @@ from ellalgo.oracles.lowpass_oracle import create_lowpass_case
 # number of FIR coefficients (including zeroth)
 
 
-def create_lowpass_q_case(N=48, nnz=8):
+def create_lowpass_q_case(N: int = 48, nnz: int = 8) -> tuple[LowpassOracleQ, float]:
     """[summary]
 
     Keyword Arguments:
@@ -56,7 +56,7 @@ def create_lowpass_q_case(N=48, nnz=8):
     return Pcsd, Spsq
 
 
-def run_lowpass():
+def run_lowpass() -> tuple[int, bool]:
     """[summary]
 
     Arguments:
@@ -78,7 +78,7 @@ def run_lowpass():
     options = Options()
     options.max_iters = 50000
     options.tolerance = 1e-14
-    h, _, num_iters = cutting_plane_optim(omega, ellip, Spsq, options)
+    h, _, num_iters = cutting_plane_optim(omega, ellip, Spsq, options)  # type: ignore
     # h = spectral_fact(r)
     return num_iters, h is not None
 
@@ -102,7 +102,7 @@ def test_lowpass() -> None:
     assert result <= 12600
 
 
-def run_lowpass_q():
+def run_lowpass_q() -> tuple[int, bool]:
     """[summary]
 
     Arguments:
@@ -125,7 +125,7 @@ def run_lowpass_q():
     options.max_iters = 20000
     options.tolerance = 1e-14
 
-    h, _, num_iters = cutting_plane_optim_q(Pcsd, ellip, Spsq, options)
+    h, _, num_iters = cutting_plane_optim_q(Pcsd, ellip, Spsq, options)  # type: ignore
     # h = spectral_fact(r)
     return num_iters, h is not None
 

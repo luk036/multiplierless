@@ -64,9 +64,10 @@ Spectral Factorization Process Diagram::
 """
 
 import numpy as np
+from typing import Union
 
 
-def spectral_fact(r):
+def spectral_fact(r: np.ndarray) -> np.ndarray:
     """Computes the minimum-phase impulse response which satisfies a given auto-correlation.
 
     This function implements the Kolmogorov 1939 approach to spectral factorization, as described in pp. 232-233 of "Signal Analysis" by A. Papoulis.
@@ -119,7 +120,7 @@ def spectral_fact(r):
 
     # now retrieve the original sampling
     # index = find(np.reminder([0:m-1], mult_factor) == 0)
-    index = np.arange(m, step=mult_factor)
+    index = np.arange(0, m, step=int(mult_factor))
     alpha1 = alpha[index]
     phi1 = phi[index]
 
@@ -129,7 +130,7 @@ def spectral_fact(r):
     return h
 
 
-def inverse_spectral_fact(h):
+def inverse_spectral_fact(h: np.ndarray) -> np.ndarray:
     """
     Computes the auto-correlation sequence from the given impulse response.
 
