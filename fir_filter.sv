@@ -50,14 +50,14 @@ module fir_filter #(
 
     // Shift register for input samples
     reg signed [DATA_WIDTH-1:0] shift_reg [0:TAPS-1];
-    
+
     // Accumulator for filter output
     reg signed [ACC_WIDTH-1:0] accumulator;
-    
+
     // Pipeline registers
     reg [4:0] tap_counter;
     reg processing;
-    
+
     // Initialize shift register
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -74,7 +74,7 @@ module fir_filter #(
             for (int i = 1; i < TAPS; i++) begin
                 shift_reg[i] <= shift_reg[i-1];
             end
-            
+
             // Sequential processing using CSD (shift-add operations)
             if (!processing) begin
                 tap_counter <= '0;
@@ -95,7 +95,7 @@ module fir_filter #(
             end
         end
     end
-    
+
     // CSD multiplier function (shift-add implementation)
     function automatic signed [ACC_WIDTH-1:0] csd_multiply(
         input signed [DATA_WIDTH-1:0] multiplicand,
@@ -105,14 +105,14 @@ module fir_filter #(
         signed [ACC_WIDTH-1:0] temp;
         result = 0;
         temp = multiplicand;
-        
+
         // CSD representation: process each bit
         for (int i = 0; i < COEF_WIDTH; i++) begin
             if (coefficient[i] == 1'b1) begin
                 result = result + (temp >>> i);
             end
         end
-        
+
         return result;
     endfunction
 

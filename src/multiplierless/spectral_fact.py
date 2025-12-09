@@ -64,7 +64,6 @@ Spectral Factorization Process Diagram::
 """
 
 import numpy as np
-from typing import Union
 
 
 def spectral_fact(r: np.ndarray) -> np.ndarray:

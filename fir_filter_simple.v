@@ -13,14 +13,14 @@ module fir_filter #(
 
     // Shift register for input samples
     reg signed [DATA_WIDTH-1:0] shift_reg [0:TAPS-1];
-    
+
     // Accumulator for filter output
     reg signed [ACC_WIDTH-1:0] accumulator;
-    
+
     // Pipeline registers
     reg [4:0] tap_counter;
     reg processing;
-    
+
     // CSD coefficients (simplified for synthesis)
     wire signed [COEF_WIDTH-1:0] coefficients [0:TAPS-1];
     assign coefficients[0] = 16'sd415;
@@ -55,7 +55,7 @@ module fir_filter #(
     assign coefficients[29] = -16'sd382;
     assign coefficients[30] = -16'sd369;
     assign coefficients[31] = -16'sd454;
-    
+
     // Initialize shift register
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -74,7 +74,7 @@ module fir_filter #(
             for (j = 0; j < TAPS-1; j = j + 1) begin
                 shift_reg[j+1] <= shift_reg[j];
             end
-            
+
             // Sequential processing
             if (!processing) begin
                 tap_counter <= 0;
