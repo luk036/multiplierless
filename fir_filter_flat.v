@@ -44,14 +44,14 @@ module fir_filter #(
     reg signed [DATA_WIDTH-1:0] shift_reg_29;
     reg signed [DATA_WIDTH-1:0] shift_reg_30;
     reg signed [DATA_WIDTH-1:0] shift_reg_31;
-    
+
     // Accumulator for filter output
     reg signed [ACC_WIDTH-1:0] accumulator;
-    
+
     // Pipeline registers
     reg [4:0] tap_counter;
     reg processing;
-    
+
     // CSD coefficients
     wire signed [COEF_WIDTH-1:0] coef_0  = 16'sd415;
     wire signed [COEF_WIDTH-1:0] coef_1  = 16'sd1251;
@@ -85,7 +85,7 @@ module fir_filter #(
     wire signed [COEF_WIDTH-1:0] coef_29 = -16'sd382;
     wire signed [COEF_WIDTH-1:0] coef_30 = -16'sd369;
     wire signed [COEF_WIDTH-1:0] coef_31 = -16'sd454;
-    
+
     // Sequential processing
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -159,7 +159,7 @@ module fir_filter #(
             shift_reg_2 <= shift_reg_1;
             shift_reg_1 <= shift_reg_0;
             shift_reg_0 <= data_in;
-            
+
             // Sequential processing
             if (!processing) begin
                 tap_counter <= 0;
