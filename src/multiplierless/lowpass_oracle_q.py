@@ -57,7 +57,7 @@ Multiplierless Filter Design Process::
 
 from __future__ import print_function
 
-from typing import Tuple, Union
+from typing import Any, Optional, Tuple, Union
 
 import numpy as np
 
@@ -75,7 +75,7 @@ class LowpassOracleQ:
         [type]: [description]
     """
 
-    def __init__(self, nnz, lowpass):
+    def __init__(self, nnz: int, lowpass: Any) -> None:
         """Initializes the LowpassOracleQ object.
 
         Args:
@@ -87,7 +87,9 @@ class LowpassOracleQ:
         self.rcsd = np.array([0])
         self.num_retries = 0
 
-    def assess_optim_q(self, r: Arr, Spsq, retry: bool):
+    def assess_optim_q(
+        self, r: Arr, Spsq: float, retry: bool
+    ) -> Tuple[Cut, Arr, Optional[float], bool]:
         """Assesses and optimizes the lowpass filter design with CSD constraints.
 
         Args:
@@ -103,7 +105,9 @@ class LowpassOracleQ:
             self.lowpass.spsq = Spsq
             if cut := self.lowpass.assess_feas(r):
                 return cut, r, None, True
-            h = spectral_fact(r)
+            # Convert r to np.ndarray if it's a float
+            r_array = np.array([r]) if isinstance(r, float) else r
+            h = spectral_fact(r_array)
             hcsd = np.array([to_decimal(to_csdnnz(hi, self.nnz)) for hi in h])
             self.rcsd = inverse_spectral_fact(hcsd)
             self.num_retries = 0  # reset to zero

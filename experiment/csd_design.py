@@ -50,11 +50,11 @@ def plot_lowpass_result(rf, Spsqf, rcsd, Spsqcsd):
     # compute the min attenuation in the stopband (convert to original vars)
     Ustop = 20 * np.log10(np.sqrt(Spsqf))
 
-    print('Min attenuation in the stopband is ', Ustop, ' dB.')
+    print("Min attenuation in the stopband is ", Ustop, " dB.")
 
     freq = [0, 0.12, 0.2, 1.0]
     desired = [1, 0]
-    h_linear = remez(151, freq, desired, fs=2.)
+    h_linear = remez(151, freq, desired, fs=2.0)
     # h_min_hom = minimum_phase(h_linear, method='homomorphic')
 
     # fig, axs = plt.subplots(4, figsize=(4, 8))
@@ -64,32 +64,27 @@ def plot_lowpass_result(rf, Spsqf, rcsd, Spsqcsd):
     ax3 = fig.add_subplot(223)
     ax4 = fig.add_subplot(224)
     axs = (ax1, ax2, ax3, ax4)
-    for h, style, color in zip((h_spcsd, h_spf), ('-', '-'), ('k', 'r')):
+    for h, style, color in zip((h_spcsd, h_spf), ("-", "-"), ("k", "r")):
         # if feasible:
         w, H = freqz(h)
         w, gd = group_delay((h, 1))
         w /= np.pi
         axs[0].plot(h, color=color, linestyle=style)
         axs[1].plot(w, np.abs(H), color=color, linestyle=style)
-        axs[2].plot(w,
-                    20 * np.log10(np.abs(H)),
-                    color=color,
-                    linestyle=style)
+        axs[2].plot(w, 20 * np.log10(np.abs(H)), color=color, linestyle=style)
         axs[3].plot(w, gd, color=color, linestyle=style)
 
     for ax in axs:
-        ax.grid(True, color='0.5')
-        ax.fill_between(freq[1:3], *ax.get_ylim(), color='#ffeeaa', zorder=1)
+        ax.grid(True, color="0.5")
+        ax.fill_between(freq[1:3], *ax.get_ylim(), color="#ffeeaa", zorder=1)
 
-    axs[0].set(xlim=[0, len(h_linear) - 1],
-               ylabel='Amplitude',
-               xlabel='Samples')
-    axs[1].legend(['Our(csd)', 'Our'], title='Phase')
+    axs[0].set(xlim=[0, len(h_linear) - 1], ylabel="Amplitude", xlabel="Samples")
+    axs[1].legend(["Our(csd)", "Our"], title="Phase")
     for ax, ylim in zip(axs[1:], ([0, 1.1], [-80, 10], [-60, 60])):
-        ax.set(xlim=[0, 1], ylim=ylim, xlabel='Frequency')
-    axs[1].set(ylabel='Magnitude')
-    axs[2].set(ylabel='Magnitude (dB)')
-    axs[3].set(ylabel='Group delay')
+        ax.set(xlim=[0, 1], ylim=ylim, xlabel="Frequency")
+    axs[1].set(ylabel="Magnitude")
+    axs[2].set(ylabel="Magnitude (dB)")
+    axs[3].set(ylabel="Group delay")
     plt.tight_layout()
     plt.show()
 
@@ -135,36 +130,39 @@ def parse_args(args):
       :obj:`argparse.Namespace`: command line parameters namespace
     """
     parser = argparse.ArgumentParser(
-        description="Multiplierless FIR optimization demonstration")
-    parser.add_argument("--version",
-                        action="version",
-                        version="Multiplierless {ver}".format(ver=__version__))
-    parser.add_argument(dest="N",
-                        help="number of filter Tags",
-                        type=int,
-                        metavar="INT")
-    parser.add_argument(dest="nnz",
-                        help="number of non-zeros",
-                        type=int,
-                        metavar="INT")
-    parser.add_argument("-v",
-                        "--verbose",
-                        dest="loglevel",
-                        help="set loglevel to INFO",
-                        action="store_const",
-                        const=logging.INFO)
-    parser.add_argument("-vv",
-                        "--very-verbose",
-                        dest="loglevel",
-                        help="set loglevel to DEBUG",
-                        action="store_const",
-                        const=logging.DEBUG)
-    parser.add_argument("-p",
-                        "--plot",
-                        dest="plot",
-                        help="plot the result graphically",
-                        action="store_const",
-                        const=True)
+        description="Multiplierless FIR optimization demonstration"
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version="Multiplierless {ver}".format(ver=__version__),
+    )
+    parser.add_argument(dest="N", help="number of filter Tags", type=int, metavar="INT")
+    parser.add_argument(dest="nnz", help="number of non-zeros", type=int, metavar="INT")
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        dest="loglevel",
+        help="set loglevel to INFO",
+        action="store_const",
+        const=logging.INFO,
+    )
+    parser.add_argument(
+        "-vv",
+        "--very-verbose",
+        dest="loglevel",
+        help="set loglevel to DEBUG",
+        action="store_const",
+        const=logging.DEBUG,
+    )
+    parser.add_argument(
+        "-p",
+        "--plot",
+        dest="plot",
+        help="plot the result graphically",
+        action="store_const",
+        const=True,
+    )
     return parser.parse_args(args)
 
 
@@ -175,10 +173,9 @@ def setup_logging(loglevel):
       loglevel (int): minimum loglevel for emitting messages
     """
     logformat = "[%(asctime)s] %(levelname)s:%(name)s:%(message)s"
-    logging.basicConfig(level=loglevel,
-                        stream=sys.stdout,
-                        format=logformat,
-                        datefmt="%Y-%m-%d %H:%M:%S")
+    logging.basicConfig(
+        level=loglevel, stream=sys.stdout, format=logformat, datefmt="%Y-%m-%d %H:%M:%S"
+    )
 
 
 def main(args):
@@ -199,7 +196,7 @@ def main(args):
 
     r0 = np.zeros(N)  # initial x0
     r0[0] = 0
-    E = Ell(40., r0)
+    E = Ell(40.0, r0)
     P = create_lowpass_case(N)
     Spsq = P.sp_sq
     rf, t, _ = cutting_plane_optim(P, E, Spsq, options)
@@ -214,7 +211,7 @@ def main(args):
 
     r0 = np.zeros(N)  # initial x0
     r0[0] = 0
-    E = Ell(40., r0)
+    E = Ell(40.0, r0)
     P, Spsq = create_csdlowpass_case(N, nnz)
     rcsd, t, _ = cutting_plane_optim_q(P, E, Spsq, options)
 
@@ -235,8 +232,7 @@ def main(args):
 
 
 def run():
-    """Entry point for console_scripts
-    """
+    """Entry point for console_scripts"""
     main(sys.argv[1:])
 
 
