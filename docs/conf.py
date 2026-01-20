@@ -168,6 +168,19 @@ pygments_style = "sphinx"
 todo_emit_warnings = True
 
 
+# -- Options for doctest output ----------------------------------------------
+
+# Default flags for doctest
+doctest_default_flags = 0
+
+# Global setup code for doctests - import the module so functions are available
+doctest_global_setup = """
+import numpy as np
+from multiplierless.skeleton import fib
+from multiplierless.spectral_fact import spectral_fact, inverse_spectral_fact
+"""
+
+
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
@@ -304,5 +317,3 @@ intersphinx_mapping = {
     "setuptools": ("https://setuptools.pypa.io/en/stable/", None),
     "pyscaffold": ("https://pyscaffold.org/en/stable", None),
 }
-
-print(f"loading configurations for {project} {version} ...", file=sys.stderr)
