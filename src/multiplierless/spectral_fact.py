@@ -65,6 +65,8 @@ Spectral Factorization Process Diagram::
 
 import numpy as np
 
+__all__ = ["spectral_fact", "inverse_spectral_fact"]
+
 
 def spectral_fact(r: np.ndarray) -> np.ndarray:
     """Computes the minimum-phase impulse response which satisfies a given auto-correlation.
@@ -77,6 +79,10 @@ def spectral_fact(r: np.ndarray) -> np.ndarray:
     Returns:
         numpy.ndarray: The impulse response that gives the desired auto-correlation.
 
+    Raises:
+        ValueError: If the input array is empty or contains invalid values.
+        RuntimeError: If numerical errors occur during spectral factorization (e.g., log of negative numbers, FFT errors).
+
     Examples:
         >>> r = np.array([1.0, 0.5, 0.2])
         >>> h = spectral_fact(r.reshape(-1, 1))
@@ -85,48 +91,77 @@ def spectral_fact(r: np.ndarray) -> np.ndarray:
         >>> h.shape == (r.shape[0], r.shape[0])
         True
     """
+    try:
+        # Validate input
+        if len(r) == 0:
+            raise ValueError("Input array cannot be empty")
 
-    # length of the impulse response sequence
-    n = len(r)
+        if not np.all(np.isfinite(r)):
+            raise ValueError("Input array contains non-finite values (NaN or infinity)")
 
-    # over-sampling factor
-    mult_factor = 100  # should have mult_factor*(n) >> n
-    m = mult_factor * n
+        # length of the impulse response sequence
+        n = len(r)
 
-    # computation method:
-    # H(exp(jTw)) = alpha(w) + j*phi(w)
-    # where alpha(w) = 1/2*ln(R(w)) and phi(w) = Hilbert_trans(alpha(w))
+        # over-sampling factor
+        mult_factor = 100  # should have mult_factor*(n) >> n
+        m = mult_factor * n
 
-    # compute 1/2*ln(R(w))
-    # w = 2*pi*[0:m-1]/m
-    w = np.linspace(0, 2 * np.pi, m, endpoint=False)
-    # R = [ones(m, 1) 2*cos(kron(w', [1:n-1]))]*r
-    Bn = np.outer(w, np.arange(1, n))
-    An = 2 * np.cos(Bn)
-    R = np.hstack((np.ones((m, 1)), An)) @ r  # NOQA
+        # computation method:
+        # H(exp(jTw)) = alpha(w) + j*phi(w)
+        # where alpha(w) = 1/2*ln(R(w)) and phi(w) = Hilbert_trans(alpha(w))
 
-    # alpha = ne.evaluate("0.5 * log(abs(R))")
-    alpha = 0.5 * np.log(np.abs(R))
+        # compute 1/2*ln(R(w))
+        # w = 2*pi*[0:m-1]/m
+        w = np.linspace(0, 2 * np.pi, m, endpoint=False)
+        # R = [ones(m, 1) 2*cos(kron(w', [1:n-1]))]*r
+        Bn = np.outer(w, np.arange(1, n))
+        An = 2 * np.cos(Bn)
+        R = np.hstack((np.ones((m, 1)), An)) @ r  # NOQA
 
-    # find the Hilbert transform
-    alphatmp = np.fft.fft(alpha)
-    # alphatmp(floor(m/2)+1: m) = -alphatmp(floor(m/2)+1: m)
-    ind = int(m / 2)  # python3 need int()
-    alphatmp[ind:m] = -alphatmp[ind:m]
-    alphatmp[0] = 0
-    alphatmp[ind] = 0
-    phi = np.real(np.fft.ifft(1j * alphatmp))
+        # Check for negative or zero values before taking log
+        # Allow small negative values due to numerical precision issues
+        min_val = np.min(R)
+        if min_val <= 0:
+            # If the minimum is very close to zero (numerical precision issue),
+            # clamp to a small positive value
+            if min_val > -1e-4:
+                R = np.maximum(R, 1e-10)
+            else:
+                raise RuntimeError(
+                    f"Spectral factorization failed: frequency response contains non-positive values. "
+                    f"This indicates the input auto-correlation may not be valid. "
+                    f"Minimum value: {min_val:.6e}, Negative values: {np.sum(R < 0)}"
+                )
 
-    # now retrieve the original sampling
-    # index = find(np.reminder([0:m-1], mult_factor) == 0)
-    index = np.arange(0, m, step=int(mult_factor))
-    alpha1 = alpha[index]
-    phi1 = phi[index]
+        # alpha = ne.evaluate("0.5 * log(abs(R))")
+        alpha = 0.5 * np.log(np.abs(R))
 
-    # compute the impulse response (inverse Fourier transform)
-    h = np.real(np.fft.ifft(np.exp(alpha1 + 1j * phi1), n))
+        # find the Hilbert transform
+        alphatmp = np.fft.fft(alpha)
+        # alphatmp(floor(m/2)+1: m) = -alphatmp(floor(m/2)+1: m)
+        ind = int(m / 2)  # python3 need int()
+        alphatmp[ind:m] = -alphatmp[ind:m]
+        alphatmp[0] = 0
+        alphatmp[ind] = 0
+        phi = np.real(np.fft.ifft(1j * alphatmp))
 
-    return h
+        # now retrieve the original sampling
+        # index = find(np.reminder([0:m-1], mult_factor) == 0)
+        index = np.arange(0, m, step=int(mult_factor))
+        alpha1 = alpha[index]
+        phi1 = phi[index]
+
+        # compute the impulse response (inverse Fourier transform)
+        h = np.real(np.fft.ifft(np.exp(alpha1 + 1j * phi1), n))
+
+        return h
+
+    except (ValueError, TypeError) as e:
+        raise ValueError(f"Invalid input for spectral factorization: {e}")
+    except np.linalg.LinAlgError as e:
+        raise RuntimeError(f"Linear algebra error during spectral factorization: {e}")
+    except Exception as e:
+        raise RuntimeError(f"Spectral factorization failed with unexpected error: {e}")
 
 
 def inverse_spectral_fact(h: np.ndarray) -> np.ndarray:

@@ -1,4 +1,4 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# This workflow will install Python dependencies, run tests and lint with multiple Python versions
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
 name: Python application (new)
@@ -12,17 +12,20 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
 
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v2
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
         with:
-          python-version: "3.10"
+          python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install flake8 pytest
+          pip install flake8 pytest pytest-cov pytest-benchmark hypothesis
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           pip install git+https://github.com/luk036/csdigit.git
           pip install git+https://github.com/luk036/bairstow.git
@@ -35,15 +38,23 @@ jobs:
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
           # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+      
+      - name: Security scan with bandit
+        run: |
+          pip install bandit
+          bandit -r src/ -f screen -v
+      
       - name: Test with pytest
         run: |
-          pytest --cov=src/
+          pytest --cov=src/ --cov-report=term-missing
+      
       - name: Codecov
         # You may pin to the exact commit or the version.
-        # uses: codecov/codecov-action@29386c70ef20e286228c72b668a06fd0e8399192
-        uses: codecov/codecov-action@v1.5.2
+        uses: codecov/codecov-action@v3
         with:
           # Repository upload token - get it from codecov.io. Required only for private repositories
           token: ${{ secrets.CODECOV_TOKEN }}
           # Comma-separated list of files to upload
-          fail_ci_if_error: true
+          fail_ci_if_error: false
+          flags: unittests
+          name: codecov-umbrella

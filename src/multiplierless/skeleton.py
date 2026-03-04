@@ -1,19 +1,9 @@
 """
-This is a skeleton file that can serve as a starting point for a Python
-console script. To run this script uncomment the following lines in the
-``[options.entry_points]`` section in ``setup.cfg``::
+Multiplierless Filter Design Examples
 
-    console_scripts =
-         fibonacci = multiplierless.skeleton:run
-
-Then run ``pip install .`` (or ``pip install -e .`` for editable mode)
-which will install the command ``fibonacci`` inside your current environment.
-
-Besides console scripts, the header (i.e. until ``_logger``...) of this file can
-also be used as template for Python modules.
-
-Note:
-    This skeleton file can be safely removed if not needed!
+This module provides examples for designing multiplierless FIR filters using
+the multiplierless package. These examples demonstrate how to use the core
+functionality for practical filter design tasks.
 
 References:
     - https://setuptools.readthedocs.io/en/latest/userguide/entry_point.html
@@ -32,36 +22,7 @@ __license__ = "MIT"
 
 _logger = logging.getLogger(__name__)
 
-
-# ---- Python API ----
-# The functions defined in this section can be imported by users in their
-# Python scripts/interactive interpreter, e.g. via
-# `from multiplierless.skeleton import fib`,
-# when using this Python module as a library.
-
-
-def fib(n: int) -> int:
-    """Fibonacci example function
-
-    Args:
-      n (int): integer
-
-    Returns:
-      int: n-th Fibonacci number
-
-    Examples:
-        >>> fib(1)
-        1
-        >>> fib(2)
-        1
-        >>> fib(7)
-        13
-    """
-    assert n > 0
-    a, b = 1, 1
-    for i in range(n - 1):
-        a, b = b, a + b
-    return a
+__all__ = ["main", "run"]
 
 
 # ---- CLI ----
@@ -80,13 +41,14 @@ def parse_args(args: list[str]) -> argparse.Namespace:
     Returns:
       :obj:`argparse.Namespace`: command line parameters namespace
     """
-    parser = argparse.ArgumentParser(description="Just a Fibonacci demonstration")
+    parser = argparse.ArgumentParser(
+        description="Multiplierless FIR Filter Design Examples"
+    )
     parser.add_argument(
         "--version",
         action="version",
         version="multiplierless {ver}".format(ver=__version__),
     )
-    parser.add_argument(dest="n", help="n-th Fibonacci number", type=int, metavar="INT")
     parser.add_argument(
         "-v",
         "--verbose",
@@ -113,25 +75,46 @@ def setup_logging(loglevel: int) -> None:
       loglevel (int): minimum loglevel for emitting messages
     """
     logformat = "[%(asctime)s] %(levelname)s:%(name)s:%(message)s"
+    # Force logging to stdout/stderr even if already configured
     logging.basicConfig(
-        level=loglevel, stream=sys.stdout, format=logformat, datefmt="%Y-%m-%d %H:%M:%S"
+        level=loglevel if loglevel is not None else logging.WARNING,
+        stream=sys.stdout,
+        format=logformat,
+        datefmt="%Y-%m-%d %H:%M:%S",
+        force=True,
     )
 
 
 def main(args: list[str]) -> None:
-    """Wrapper allowing :func:`fib` to be called with string arguments in a CLI fashion
+    """Wrapper for multiplierless filter design CLI
 
-    Instead of returning the value from :func:`fib`, it prints the result to the
-    ``stdout`` in a nicely formatted message.
+    This function provides a command-line interface for exploring
+    multiplierless filter design capabilities.
 
     Args:
       args (List[str]): command line parameters as list of strings
-          (for example  ``["--verbose", "42"]``).
+          (for example  ``["--verbose"]``).
     """
     parsed_args = parse_args(args)
-    setup_logging(parsed_args.loglevel)
-    _logger.debug("Starting crazy calculations...")
-    print("The {}-th Fibonacci number is {}".format(parsed_args.n, fib(parsed_args.n)))
+    # Set default log level to INFO if not specified
+    loglevel = (
+        parsed_args.loglevel if parsed_args.loglevel is not None else logging.INFO
+    )
+    setup_logging(loglevel)
+    _logger.debug("Starting multiplierless examples...")
+    _logger.info("multiplierless - FIR filter design without multipliers")
+    _logger.info("")
+    _logger.info("This package provides tools for designing FIR filters")
+    _logger.info("that avoid multiplication operations, useful for")
+    _logger.info("hardware-constrained implementations.")
+    _logger.info("")
+    _logger.info("Key modules:")
+    _logger.info("  - spectral_fact: Spectral factorization algorithms")
+    _logger.info("  - lowpass_oracle_q: Lowpass filter design with CSD constraints")
+    _logger.info("")
+    _logger.info("For more information, see:")
+    _logger.info("  https://github.com/luk036/multiplierless")
+    _logger.info("  https://luk036.github.io/multiplierless")
     _logger.info("Script ends here")
 
 
@@ -152,6 +135,6 @@ if __name__ == "__main__":
     # After installing your project with pip, users can also run your Python
     # modules as scripts via the ``-m`` flag, as defined in PEP 338::
     #
-    #     python -m multiplierless.skeleton 42
+    #     python -m multiplierless.skeleton
     #
     run()

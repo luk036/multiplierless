@@ -64,6 +64,8 @@ import numpy as np
 from csdigit.csd import to_csdnnz, to_decimal
 from .spectral_fact import inverse_spectral_fact, spectral_fact
 
+__all__ = ["LowpassOracleQ"]
+
 Arr = Union[np.ndarray, float]
 Cut = Tuple[Arr, float]
 

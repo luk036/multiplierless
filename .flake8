@@ -1,3 +1,16 @@
-# Autoformatter friendly flake8 config (all formatting rules disabled)
+# Flake8 configuration - Black compatible with meaningful checks enabled
 [flake8]
-extend-ignore = E1, E2, E3, E501, W1, W2, W3, W5
+max_line_length = 88
+extend_ignore = E203, W503
+# ^  Black-compatible
+#    E203 and W503 have edge cases handled by black
+exclude =
+    .tox
+    build
+    dist
+    .eggs
+    docs/conf.py
+    __pycache__
+    .git
+    .pytest_cache
+
