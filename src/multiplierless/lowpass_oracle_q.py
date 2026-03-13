@@ -55,8 +55,6 @@ Multiplierless Filter Design Process::
 
 """
 
-from __future__ import print_function
-
 from typing import Any, Optional, Tuple, Union
 
 import numpy as np

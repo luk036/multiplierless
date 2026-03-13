@@ -5,7 +5,7 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/a2f75bd3cc1e4c34be4741bdd61168ba)](https://app.codacy.com/app/luk036/multiplierless?utm_source=github.com&utm_medium=referral&utm_content=luk036/multiplierless&utm_campaign=badger)
 [![codecov](https://codecov.io/gh/luk036/multiplierless/branch/main/graph/badge.svg?token=DEx23tq9W4)](https://codecov.io/gh/luk036/multiplierless)
 
-# multplierless
+# multiplierless
 
 > Multiplierless FIR filter design in Python
 
@@ -27,12 +27,36 @@ This code is part of a larger system for designing digital filters, specifically
 
 - At most one square-root per iteration.
 - Include oracles for Matrix Inequalities and Network problems.
-- Suport Parallel-Cuts.
+- Support Parallel-Cuts.
 - Pure Python code.
 
 ## Installation
 
 - The core ellipsoid method depends only on the `ellalgo` and `numpy` modules.
+
+## Quickstart
+
+```python
+import numpy as np
+from multiplierless.spectral_fact import spectral_fact
+
+# Define auto-correlation coefficients
+r = np.array([1.0, 0.5, 0.2, 0.1])
+
+# Compute minimum-phase impulse response
+h = spectral_fact(r)
+
+print("Impulse response:", h)
+```
+
+## Performance
+
+Run benchmarks with pytest-benchmark:
+
+```bash
+pip install pytest-benchmark
+pytest --benchmark-only
+```
 
 ## See also
 
