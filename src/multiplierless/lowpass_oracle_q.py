@@ -64,15 +64,26 @@ from .spectral_fact import inverse_spectral_fact, spectral_fact
 
 __all__ = ["LowpassOracleQ"]
 
+#: Type alias for array-like values or floats used in filter coefficient representation.
 Arr = Union[np.ndarray, float]
+
+#: Type alias for a cutting plane, represented as a tuple of (gradient, intercept).
 Cut = Tuple[Arr, float]
 
 
 class LowpassOracleQ:
-    """Lowpass oracle for the multiplierless lowpass filter design problem.
+    """Oracle for multiplierless lowpass filter design with CSD constraints.
 
-    Returns:
-        [type]: [description]
+    This oracle integrates spectral factorization with Canonical Signed Digit (CSD)
+    representation to enable optimization of FIR filter coefficients while constraining
+    the number of non-zero CSD digits. It is used in ellipsoid method optimization
+    to iteratively refine filter designs.
+
+    The oracle assesses feasibility and optimizes filter coefficients by:
+    1. Converting coefficients to minimum-phase impulse response via spectral factorization
+    2. Converting to CSD representation with the specified non-zero digit constraint
+    3. Computing the inverse spectral factorization to get updated auto-correlation
+    4. Using cutting planes to guide the optimization toward feasible solutions
     """
 
     def __init__(self, nnz: int, lowpass: Any) -> None:
