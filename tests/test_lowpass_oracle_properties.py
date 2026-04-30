@@ -1,9 +1,9 @@
 import numpy as np
+from ellalgo.oracles.lowpass_oracle import create_lowpass_case
 from hypothesis import given, settings
 from hypothesis.strategies import integers
 
 from multiplierless.lowpass_oracle_q import LowpassOracleQ
-from ellalgo.oracles.lowpass_oracle import create_lowpass_case
 
 
 def test_lowpass_oracle_q_initialization():

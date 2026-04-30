@@ -13,4 +13,3 @@ exclude =
     __pycache__
     .git
     .pytest_cache
-

@@ -1,9 +1,9 @@
 import numpy as np
 from hypothesis import given, settings
-from hypothesis.strategies import lists, floats, integers
+from hypothesis.strategies import floats, integers, lists
 from pytest import approx
 
-from multiplierless.spectral_fact import spectral_fact, inverse_spectral_fact
+from multiplierless.spectral_fact import inverse_spectral_fact, spectral_fact
 
 
 def test_spectral_fact_basic():

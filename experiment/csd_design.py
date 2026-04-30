@@ -1,18 +1,18 @@
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy.signal import remez, freqz, group_delay
-from ellalgo.cutting_plane import Options, cutting_plane_optim, cutting_plane_optim_q
-from ellalgo.ell import Ell
-from multiplierless.spectral_fact import spectral_fact
-from ellalgo.oracles.lowpass_oracle import create_lowpass_case
-from multiplierless.lowpass_oracle_q import LowpassOracleQ
-from csdigit.csd import to_csdnnz
-
 import argparse
 import logging
 import sys
 
+import matplotlib.pyplot as plt
+import numpy as np
+from csdigit.csd import to_csdnnz
 from ellalgo import __version__
+from ellalgo.cutting_plane import Options, cutting_plane_optim, cutting_plane_optim_q
+from ellalgo.ell import Ell
+from ellalgo.oracles.lowpass_oracle import create_lowpass_case
+from scipy.signal import freqz, group_delay, remez
+
+from multiplierless.lowpass_oracle_q import LowpassOracleQ
+from multiplierless.spectral_fact import spectral_fact
 
 __author__ = "Wai-Shing Luk"
 __copyright__ = "Wai-Shing Luk"

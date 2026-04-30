@@ -44,7 +44,6 @@ from math import floor
 from typing import Optional, Tuple
 
 import numpy as np
-
 from ellalgo.ell_typing import CutChoice, OracleOptim
 
 Arr = np.ndarray

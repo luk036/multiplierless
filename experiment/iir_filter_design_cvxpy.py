@@ -1,9 +1,10 @@
-import numpy as np
+import warnings
+
 import cvxpy as cp
 import matplotlib.pyplot as plt
+import numpy as np
 from scipy import signal
 from scipy.linalg import toeplitz
-import warnings
 
 warnings.filterwarnings("ignore")
 

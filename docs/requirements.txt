@@ -1,3 +1,6 @@
+git+https://github.com/luk036/bairstow.git
+git+https://github.com/luk036/csdigit.git
+git+https://github.com/luk036/ellalgo.git
 # Requirements file for ReadTheDocs, check .readthedocs.yml.
 # To build the module reference correctly, make sure every external package
 # under `install_requires` in `setup.cfg` is also listed here!
@@ -5,6 +8,3 @@
 myst-parser[linkify]
 sphinx>=3.2.1
 sphinxcontrib-svgbob
-git+https://github.com/luk036/csdigit.git
-git+https://github.com/luk036/bairstow.git
-git+https://github.com/luk036/ellalgo.git

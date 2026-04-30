@@ -1,6 +1,7 @@
 import numpy as np
 from pytest import approx
-from multiplierless.spectral_fact import spectral_fact, inverse_spectral_fact
+
+from multiplierless.spectral_fact import inverse_spectral_fact, spectral_fact
 
 
 def test_spectral_fact() -> None:

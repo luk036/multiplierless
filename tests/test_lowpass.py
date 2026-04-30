@@ -1,10 +1,9 @@
 import numpy as np
 from ellalgo.cutting_plane import Options, cutting_plane_optim, cutting_plane_optim_q
 from ellalgo.ell import Ell
-
+from ellalgo.oracles.lowpass_oracle import create_lowpass_case
 
 from multiplierless.lowpass_oracle_q import LowpassOracleQ
-from ellalgo.oracles.lowpass_oracle import create_lowpass_case
 
 # Modified from CVX code by Almir Mutapcic in 2006.
 # Adapted in 2010 for impulse response peak-minimization by convex iteration

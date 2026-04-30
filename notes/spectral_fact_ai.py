@@ -20,8 +20,8 @@ It's worth noting that this function uses numpy, a powerful library for numerica
 In summary, this function takes an autocorrelation sequence as input, performs spectral factorization through a series of mathematical transformations, and outputs the impulse response of a causal and stable filter. This type of operation is commonly used in various signal processing applications, such as filter design and signal prediction.
 """
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 def spectral_fact(r):

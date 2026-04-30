@@ -46,4 +46,3 @@ dc=dc(1:npar)
 dcn=dc/dc(1)
 %constant term ie dc.dc* = dcn*.dcn*reps
 reps=dc(1)^2
-
