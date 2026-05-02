@@ -147,7 +147,8 @@ class IIRFilterDesignCVX:
         constraints += [p[order_n:] == p[: order_n + 1][::-1]]
 
         # Form Toeplitz matrices for positivity constraints
-        # Construct Toeplitz matrices manually since scipy.linalg.toeplitz doesn't work with CVXPY variables
+        # Construct Toeplitz matrices manually since
+        # scipy.linalg.toeplitz doesn't work with CVXPY variables
         def make_toeplitz_symmetric(vec, size):
             T = cp.Variable((size, size), symmetric=True)
             constraints = []
@@ -172,7 +173,7 @@ class IIRFilterDesignCVX:
         # Additional stability constraint: p[0] >= sum(abs(p[1:]))
         constraints += [p[order_n] >= cp.sum(cp.abs(p[order_n + 1 :]))]
 
-        # For DCP compliance: optimize numerator autocorrelation against desired response
+        # For DCP compliance: optimize numerator autocorr against desired response
         # (ratio formulation would be non-convex)
         num_response = freq_matrix @ r
         target_response = D**2

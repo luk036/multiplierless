@@ -1,58 +1,23 @@
 """
 Lowpass Oracle Q
 
-This code defines a class called LowpassOracleQ, which is designed to help with the problem of designing multiplierless lowpass filters. A lowpass filter is a type of signal processing tool that allows low-frequency signals to pass through while reducing or blocking high-frequency signals. The "multiplierless" aspect means the filter is designed to work without using multiplication operations, which can be beneficial in certain hardware implementations.
+This code defines a class called LowpassOracleQ, which helps design
+multiplierless lowpass filters. A lowpass filter allows low-frequency
+signals to pass through while reducing or blocking high-frequency
+signals. The "multiplierless" aspect means the filter works without
+multiplication operations.
 
-The LowpassOracleQ class takes two inputs when initialized: 'nnz' (which likely stands for "number of non-zero elements") and 'lowpass' (which is probably another object related to lowpass filter design). These inputs are stored as attributes of the class for later use.
+The LowpassOracleQ class takes two inputs: 'nnz' (number of non-zero
+elements) and 'lowpass' (another object related to lowpass filter
+design).
 
-The main functionality of this class is provided by the 'assess_optim_q' method. This method takes three inputs: 'r' (an array of numbers), 'Spsq' (likely related to the filter's frequency response), and 'retry' (a boolean indicating whether this is a retry attempt).
+The main functionality is the 'assess_optim_q' method. It evaluates
+and optimizes the filter design by checking feasibility, converting to
+CSD representation, and calling the lowpass object's optimization
+method.
 
-The purpose of the 'assess_optim_q' method is to evaluate and optimize the filter design. It does this through a series of steps:
-
-1. If it's not a retry, it first checks if the current design is feasible using the 'assess_feas' method of the 'lowpass' object.
-2. If feasible, it converts the input 'r' into a filter response using spectral factorization, then converts this to a CSD (Canonical Signed Digit) representation, which is a way of representing numbers that's useful for multiplierless designs.
-3. If it's a retry, or after the above steps, it calls the 'assess_optim' method of the 'lowpass' object to further optimize the design.
-4. Finally, it returns a tuple containing the optimized filter coefficients, the CSD representation of the filter, an updated frequency response, and a boolean indicating whether further retries are possible.
-
-The code uses several mathematical operations and transformations, including spectral factorization and its inverse, which are advanced concepts in signal processing. It also uses the CSD number representation, which is a special way of representing numbers that's useful in digital filter design.
-
-The output of this code is not a final filter design, but rather an intermediate step in an iterative optimization process. It provides updated filter coefficients and frequency response characteristics that can be used in further iterations of the design process.
-
-This code is part of a larger system for designing digital filters, specifically tailored for situations where multiplication operations need to be avoided. It's a specialized tool that would be used by engineers or researchers working on digital signal processing systems with specific hardware constraints.
-
-Multiplierless Filter Design Process::
-
-    ```svgbob
-        Filter Coefficients (r)
-               |
-               v
-        +-------------------+
-        | Spectral Fact.    |
-        | (r -> h)          |
-        +-------------------+
-               |
-               v
-        +-------------------+
-        | CSD Conversion    |
-        | (h -> h_csd)      |
-        +-------------------+
-               |
-               v
-        +-------------------+
-        | Inv. Spectral     |
-        | Fact. (h_csd -> r)|
-        +-------------------+
-               |
-               v
-        +-------------------+
-        | Lowpass Oracle    |
-        | Optimization      |
-        +-------------------+
-               |
-               v
-        Optimized Filter
-    ```
-
+The code uses spectral factorization, inverse spectral
+factorization, and CSD (Canonical Signed Digit) representation.
 """
 
 from typing import Any, Optional, Tuple, Union
@@ -74,24 +39,24 @@ Cut = Tuple[Arr, float]
 class LowpassOracleQ:
     """Oracle for multiplierless lowpass filter design with CSD constraints.
 
-    This oracle integrates spectral factorization with Canonical Signed Digit (CSD)
-    representation to enable optimization of FIR filter coefficients while constraining
-    the number of non-zero CSD digits. It is used in ellipsoid method optimization
-    to iteratively refine filter designs.
+    This oracle integrates spectral factorization with Canonical Signed Digit
+    (CSD) representation to enable optimization of FIR filter coefficients
+    while constraining the number of non-zero CSD digits. It is used in
+    ellipsoid method optimization to iteratively refine filter designs.
 
     The oracle assesses feasibility and optimizes filter coefficients by:
-    1. Converting coefficients to minimum-phase impulse response via spectral factorization
-    2. Converting to CSD representation with the specified non-zero digit constraint
-    3. Computing the inverse spectral factorization to get updated auto-correlation
-    4. Using cutting planes to guide the optimization toward feasible solutions
+    1. Converting coefficients to minimum-phase impulse response
+    2. Converting to CSD representation with the specified constraint
+    3. Computing the inverse spectral factorization
+    4. Using cutting planes to guide optimization
     """
 
     def __init__(self, nnz: int, lowpass: Any) -> None:
         """Initializes the LowpassOracleQ object.
 
         Args:
-            nnz (int): The number of non-zero elements allowed in the CSD representation.
-            lowpass (object): An object representing the lowpass filter, expected to have `assess_feas` and `assess_optim` methods.
+            nnz (int): Number of non-zero elements in CSD representation.
+            lowpass (object): Lowpass filter with assess_feas and assess_optim.
         """
         self.nnz = nnz
         self.lowpass = lowpass
@@ -104,26 +69,24 @@ class LowpassOracleQ:
         """Assesses and optimizes the lowpass filter design with CSD constraints.
 
         Args:
-            r (Arr): An array of numbers representing the filter coefficients.
-            Spsq (float): A value related to the filter's frequency response.
-            retry (bool): A boolean indicating whether this is a retry attempt.
+            r (Arr): Filter coefficients.
+            Spsq (float): Frequency response value.
+            retry (bool): Whether this is a retry attempt.
 
         Returns:
-            Tuple: A tuple containing the optimized filter coefficients, the CSD representation of the filter, an updated frequency response, and a boolean indicating whether further retries are possible.
+            Tuple: (cut, rcsd, Spsq2, can_retry) containing optimized
+            coefficients, CSD representation, updated response, and retry flag.
         """
         if not retry:  # retry due to no effect in the previous cut
-            # self.lowpass.retry = False
             self.lowpass.spsq = Spsq
             if cut := self.lowpass.assess_feas(r):
                 return cut, r, None, True
-            # Convert r to np.ndarray if it's a float
             r_array = np.array([r]) if isinstance(r, float) else r
             h = spectral_fact(r_array)
             hcsd = np.array([to_decimal(to_csdnnz(hi, self.nnz)) for hi in h])
             self.rcsd = inverse_spectral_fact(hcsd)
-            self.num_retries = 0  # reset to zero
+            self.num_retries = 0
         else:
-            # self.lowpass.retry = True
             self.num_retries += 1
 
         (gc, hc), Spsq2 = self.lowpass.assess_optim(self.rcsd, Spsq)

@@ -7,7 +7,8 @@ through while attenuating high-frequency signals. The main purpose of this code
 is to help optimize the design of such a filter by providing a way to assess
 whether a given set of filter coefficients meets certain specifications.
 
-The code defines a class called LowpassOracle that takes several inputs when initialized:
+The code defines a class called LowpassOracle that takes several inputs
+when initialized:
 
 1. ndim: The number of filter coefficients
 2. wpass: The end of the passband (frequencies that should pass through)
@@ -16,7 +17,10 @@ The code defines a class called LowpassOracle that takes several inputs when ini
 5. up_sq: The upper bound for the squared magnitude response in the passband
 6. sp_sq: The upper bound for the squared magnitude response in the stopband
 
-The main outputs of this code are produced by two methods: assess_feas and assess_optim. These methods take a set of filter coefficients as input and determine whether they meet the specified requirements or how close they are to meeting them.
+The main outputs of this code are produced by two methods:
+assess_feas and assess_optim. These methods take a set of filter
+coefficients as input and determine whether they meet the specified
+requirements or how close they are to meeting them.
 
 The LowpassOracle achieves its purpose through a series of checks on the
 frequency response of the filter. It uses a pre-computed spectrum matrix to
@@ -29,9 +33,15 @@ frequency points and checking the filter's response at each point. If any
 violations of the specifications are found, the code returns information about
 the violation, which can be used to adjust the filter coefficients.
 
-A key data transformation happening in this code is the conversion from filter coefficients to frequency response. This is done using the pre-computed spectrum matrix, which allows for efficient calculation of the response at many frequency points.
+A key data transformation happening in this code is the conversion from
+filter coefficients to frequency response. This is done using the
+pre-computed spectrum matrix, which allows for efficient calculation
+of the response at many frequency points.
 
-The code also includes a helper function called create_lowpass_case, which sets up a specific instance of the LowpassOracle with predefined parameters. This function can be used to quickly create a standard test case for filter design.
+The code also includes a helper function called create_lowpass_case,
+which sets up a specific instance of the LowpassOracle with predefined
+parameters. This function can be used to quickly create a standard
+test case for filter design.
 
 Overall, this code provides a tool for iteratively designing and optimizing
 low-pass filters by giving feedback on how well a set of coefficients meets the
@@ -100,22 +110,30 @@ class LowpassOracle(OracleOptim):
             ndim (int): The number of FIR coefficients (including the zeroth).
             wpass (float): The end of the passband.
             wstop (float): The end of the stopband.
-            lp_sq (float): The lower bound on the squared magnitude frequency response in the passband.
-            up_sq (float): The upper bound on the squared magnitude frequency response in the passband.
-            sp_sq (float): The upper bound on the squared magnitude frequency response in the stopband.
+            lp_sq (float): The lower bound on the squared magnitude
+                frequency response in the passband.
+            up_sq (float): The upper bound on the squared magnitude
+                frequency response in the passband.
+            sp_sq (float): The upper bound on the squared magnitude
+                frequency response in the stopband.
 
         Attributes:
             spectrum (np.ndarray): The matrix used to compute the power spectrum.
             nwpass (int): The index of the end of the passband.
             nwstop (int): The index of the end of the stopband.
-            lp_sq (float): The lower bound on the squared magnitude frequency response in the passband.
-            up_sq (float): The upper bound on the squared magnitude frequency response in the passband.
-            sp_sq (float): The upper bound on the squared magnitude frequency response in the stopband.
+            lp_sq (float): The lower bound on the squared magnitude
+                frequency response in the passband.
+            up_sq (float): The upper bound on the squared magnitude
+                frequency response in the passband.
+            sp_sq (float): The upper bound on the squared magnitude
+                frequency response in the stopband.
             idx1 (int): The current index for the passband.
             idx2 (int): The current index for the stopband.
             idx3 (int): The current index for the stopband.
-            fmax (float): The maximum value of the squared magnitude frequency response.
-            kmax (int): The index of the maximum value of the squared magnitude frequency response.
+            fmax (float): The maximum value of the squared magnitude
+                frequency response.
+            kmax (int): The index of the maximum value of the squared
+                magnitude frequency response.
         """
         # *********************************************************************
         # optimization parameters
@@ -258,8 +276,8 @@ class LowpassOracle(OracleOptim):
 
         Returns:
             tuple: A tuple containing:
-                - A tuple of (gradient, (lower, upper)) for the maximum stopband response
-                - The maximum stopband response value (or None if not feasible)
+                - A tuple of (gradient, (lower, upper)) for the max stopband
+                - The max stopband response value (or None if not feasible)
         """
         # Update the stopband bound
         self.sp_sq = gamma
