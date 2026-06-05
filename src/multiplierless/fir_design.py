@@ -16,7 +16,7 @@ from ellalgo.cutting_plane import Options, cutting_plane_optim_q
 from ellalgo.ell import Ell
 
 from multiplierless.lowpass_oracle_q import LowpassOracleQ
-from multiplierless.spectral_fact import spectral_fact
+from multiplierless.spectral_fact import spectral_fact, spectral_fact_fft, spectral_fact_root
 
 # experiment/lowpass_oracle is not a package module; import by path if needed,
 # but we replicate create_lowpass_case_with_params inline to avoid coupling.
@@ -171,7 +171,12 @@ def main(argv=None):
               file=sys.stderr)
         return 1
 
-    h = spectral_fact(r)
+    method = spec.get("spectral_method", "root")
+    tol = spec.get("root_tolerance", 1e-8)
+    if method == "fft":
+        h = spectral_fact_fft(r)
+    else:
+        h = spectral_fact_root(r, tol)
     csd_strings = [to_csdnnz(hi, csd_nnz) for hi in h]
 
     coefficients = []
@@ -182,6 +187,7 @@ def main(argv=None):
         "filter_order": N,
         "csd_nnz": csd_nnz,
         "iterations": num_iters,
+        "spectral_method": method,
         "coefficients": coefficients,
     }
 
