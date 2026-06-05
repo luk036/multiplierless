@@ -39,7 +39,7 @@ def spectral_fact_root(r: np.ndarray, tolerance: float = 1e-8) -> np.ndarray:
 
 
 def spectral_fact(r: np.ndarray) -> np.ndarray:
-    return spectral_fact_root(r, 1e-8)
+    return spectral_fact_fft(r)
 
 
 def spectral_fact_fft(r: np.ndarray) -> np.ndarray:
