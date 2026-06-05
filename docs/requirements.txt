@@ -1,4 +1,4 @@
-git+https://github.com/luk036/bairstow.git
+git+https://github.com/luk036/ginger.git
 git+https://github.com/luk036/csdigit.git
 git+https://github.com/luk036/ellalgo.git
 # Requirements file for ReadTheDocs, check .readthedocs.yml.

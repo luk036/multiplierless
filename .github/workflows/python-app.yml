@@ -28,7 +28,7 @@ jobs:
           pip install setuptools flake8 pytest pytest-cov pytest-benchmark hypothesis
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           pip install git+https://github.com/luk036/csdigit.git
-          pip install git+https://github.com/luk036/bairstow.git
+          pip install git+https://github.com/luk036/ginger.git
           pip install git+https://github.com/luk036/ellalgo.git
           python setup.py develop
 
