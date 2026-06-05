@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/luk036/multiplierless/fir_design_output.schema.json",
+  "title": "FIR Filter Design — Output (CSD Coefficients)",
+  "type": "object",
+  "properties": {
+    "filter_order": { "type": "integer" },
+    "csd_nnz": { "type": "integer" },
+    "iterations": { "type": "integer" },
+    "coefficients": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "index": { "type": "integer" },
+          "value": { "type": "number" },
+          "csd": { "type": "string", "pattern": "^[0+-]+\\.[0+-]*$" }
+        },
+        "required": ["index", "value", "csd"]
+      }
+    },
+    "verilog": { "type": "string" }
+  },
+  "required": ["filter_order", "csd_nnz", "iterations", "coefficients"]
+}

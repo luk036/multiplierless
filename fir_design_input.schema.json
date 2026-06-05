@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/luk036/multiplierless/fir_design_input.schema.json",
+  "title": "FIR Filter Design — Input Specification",
+  "type": "object",
+  "properties": {
+    "filter_order": { "type": "integer", "minimum": 4 },
+    "passband_edge": { "type": "number", "minimum": 0.0, "maximum": 0.5, "default": 0.12 },
+    "stopband_edge": { "type": "number", "minimum": 0.0, "maximum": 0.5, "default": 0.20 },
+    "passband_ripple": { "type": "number", "minimum": 0.0, "maximum": 1.0, "default": 0.125 },
+    "stopband_attenuation": { "type": "number", "minimum": 0.0, "maximum": 1.0, "default": 0.125 },
+    "csd_nnz": { "type": "integer", "minimum": 1, "maximum": 16, "default": 7 },
+    "discretization_factor": { "type": "integer", "minimum": 5, "maximum": 200, "default": 15 },
+    "max_iters": { "type": "integer", "minimum": 100, "default": 50000 },
+    "tolerance": { "type": "number", "minimum": 1e-30, "default": 1e-14 },
+    "ellipsoid_radius": { "type": "number", "minimum": 1.0, "default": 40.0 },
+    "parallel_cut": { "type": "boolean", "default": true },
+    "verilog": {
+      "type": "object",
+      "properties": {
+        "input_width": { "type": "integer", "minimum": 4, "maximum": 64, "default": 16 },
+        "module_name": { "type": "string", "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$", "default": "fir_filter" }
+      }
+    }
+  },
+  "required": ["filter_order", "csd_nnz"]
+}
