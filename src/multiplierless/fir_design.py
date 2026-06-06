@@ -171,7 +171,7 @@ def main(argv=None):
               file=sys.stderr)
         return 1
 
-    method = spec.get("spectral_method", "root")
+    method = spec.get("spectral_method", "fft")
     tol = spec.get("root_tolerance", 1e-8)
     if method == "fft":
         h = spectral_fact_fft(r)
