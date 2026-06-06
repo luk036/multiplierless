@@ -1,10 +1,15 @@
 """Spectral Factorization — root-finding (default) + FFT (legacy)."""
+
 import numpy as np
 from ginger.aberth import aberth_autocorr, initial_aberth_autocorr, poly_from_roots
 from ginger.rootfinding import Options
 
-__all__ = ["spectral_fact", "spectral_fact_fft", "spectral_fact_root",
-           "inverse_spectral_fact"]
+__all__ = [
+    "spectral_fact",
+    "spectral_fact_fft",
+    "spectral_fact_root",
+    "inverse_spectral_fact",
+]
 
 
 def spectral_fact_root(r: np.ndarray, tolerance: float = 1e-8) -> np.ndarray:

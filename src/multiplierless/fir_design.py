@@ -16,14 +16,15 @@ from ellalgo.cutting_plane import Options, cutting_plane_optim_q
 from ellalgo.ell import Ell
 
 from multiplierless.lowpass_oracle_q import LowpassOracleQ
-from multiplierless.spectral_fact import spectral_fact, spectral_fact_fft, spectral_fact_root
+from multiplierless.spectral_fact import spectral_fact_fft, spectral_fact_root
 
 # experiment/lowpass_oracle is not a package module; import by path if needed,
 # but we replicate create_lowpass_case_with_params inline to avoid coupling.
 
 
-def create_lowpass_case_params(N, wpass, wstop, delta0_wpass, delta0_wstop,
-                                discretization_factor):
+def create_lowpass_case_params(
+    N, wpass, wstop, delta0_wpass, delta0_wstop, discretization_factor
+):
     """Build a LowpassOracle with fully parameterized filter specs."""
     from math import floor
 
@@ -132,7 +133,10 @@ def main(argv=None):
         argv = sys.argv[1:]
 
     if len(argv) < 1:
-        print("Usage: python -m multiplierless.fir_design <filter_spec.json>", file=sys.stderr)
+        print(
+            "Usage: python -m multiplierless.fir_design <filter_spec.json>",
+            file=sys.stderr,
+        )
         return 1
 
     with open(argv[0]) as f:
@@ -167,8 +171,10 @@ def main(argv=None):
     r, _, num_iters = cutting_plane_optim_q(omega, E, Spsq, opts)
 
     if r is None:
-        print(f"Optimization failed — no feasible solution after {num_iters} iterations.",
-              file=sys.stderr)
+        print(
+            f"Optimization failed — no feasible solution after {num_iters} iterations.",
+            file=sys.stderr,
+        )
         return 1
 
     method = spec.get("spectral_method", "fft")
