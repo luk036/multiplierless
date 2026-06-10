@@ -63,3 +63,29 @@ def test_setup_logging() -> None:
     # Test DEBUG level
     setup_logging(logging.DEBUG)
     assert logger.level == logging.DEBUG
+
+
+def test_run(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test the run() entry point."""
+    import sys
+
+    from multiplierless.skeleton import run
+
+    monkeypatch.setattr(sys, "argv", ["multiplierless"])
+    result = run()
+    assert result is None
+
+
+def test_main_guard_via_subprocess() -> None:
+    """Test the if __name__ == '__main__' guard via subprocess."""
+    import subprocess
+    import sys
+
+    result = subprocess.run(
+        [sys.executable, "-m", "multiplierless.skeleton"],
+        capture_output=True,
+        text=True,
+        timeout=10,
+    )
+    assert result.returncode == 0
+    assert "multiplierless - FIR filter design without multipliers" in result.stdout
