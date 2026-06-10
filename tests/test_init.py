@@ -23,7 +23,6 @@ with patch("importlib.metadata.version", side_effect=PackageNotFoundError("multi
         [sys.executable, "-c", code],
         capture_output=True,
         text=True,
-        cwd="D:\\github\\py\\multiplierless",
     )
     assert result.returncode == 0, f"Subprocess failed: {result.stderr}"
 
