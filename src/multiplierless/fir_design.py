@@ -129,6 +129,19 @@ DEFAULTS = {
 
 
 def main(argv=None):
+    """CLI entry point for multiplierless FIR filter design.
+
+    Reads filter specifications from a JSON file, runs ellipsoid-method
+    optimization with CSD-quantized coefficients, and outputs results
+    as JSON to stdout.
+
+    Args:
+        argv: Command-line arguments (list of strings). If None, uses
+            sys.argv[1:].
+
+    Returns:
+        Exit code — 0 on success, 1 on failure.
+    """
     if argv is None:
         argv = sys.argv[1:]
 

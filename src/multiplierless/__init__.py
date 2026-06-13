@@ -1,3 +1,10 @@
+"""Multiplierless FIR filter design package.
+
+Provides tools for designing FIR filters using CSD (Canonical Signed Digit)
+representation and ellipsoid method optimization, avoiding multiplication
+operations for hardware-constrained implementations.
+"""
+
 from importlib.metadata import PackageNotFoundError, version
 
 try:

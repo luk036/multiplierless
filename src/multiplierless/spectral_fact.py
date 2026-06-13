@@ -13,6 +13,19 @@ __all__ = [
 
 
 def spectral_fact_root(r: np.ndarray, tolerance: float = 1e-8) -> np.ndarray:
+    """Spectral factorization via Aberth-Ehrlich root-finding.
+
+    Constructs a symmetric polynomial from the auto-correlation coefficients,
+    finds its roots using the Aberth-Ehrlich method, selects roots inside the
+    unit circle, and reconstructs the minimum-phase impulse response.
+
+    Args:
+        r: Auto-correlation coefficients.
+        tolerance: Convergence tolerance for root-finding (default 1e-8).
+
+    Returns:
+        Minimum-phase impulse response coefficients.
+    """
     n = len(r)
     deg = 2 * n - 2
     coeffs = [0.0] * (deg + 1)
@@ -44,6 +57,16 @@ def spectral_fact_root(r: np.ndarray, tolerance: float = 1e-8) -> np.ndarray:
 
 
 def spectral_fact(r: np.ndarray) -> np.ndarray:
+    """Spectral factorization of auto-correlation coefficients.
+
+    Default entry point; delegates to the FFT-based implementation.
+
+    Args:
+        r: Auto-correlation coefficients.
+
+    Returns:
+        Minimum-phase impulse response coefficients.
+    """
     return spectral_fact_fft(r)
 
 
@@ -78,4 +101,15 @@ def spectral_fact_fft(r: np.ndarray) -> np.ndarray:
 
 
 def inverse_spectral_fact(h: np.ndarray) -> np.ndarray:
+    """Inverse spectral factorization — auto-correlation from impulse response.
+
+    Computes the auto-correlation coefficients of a minimum-phase impulse
+    response via convolution.
+
+    Args:
+        h: Minimum-phase impulse response coefficients.
+
+    Returns:
+        Auto-correlation coefficients.
+    """
     return np.convolve(h, h[::-1])[len(h) - 1 :]
