@@ -10,7 +10,9 @@ def test_version_unknown_on_package_not_found() -> None:
     code = """
 from unittest.mock import patch
 from importlib.metadata import PackageNotFoundError
-with patch("importlib.metadata.version", side_effect=PackageNotFoundError("multiplierless")):
+with patch(
+    "importlib.metadata.version", side_effect=PackageNotFoundError("multiplierless")
+):
     import importlib
     import sys
     if "multiplierless" in sys.modules:

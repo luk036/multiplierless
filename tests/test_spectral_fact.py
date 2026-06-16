@@ -81,7 +81,7 @@ def test_spectral_fact_fft_runtime_error() -> None:
 
 
 def test_spectral_fact_fft_clamps_small_negative() -> None:
-    """Test that spectral_fact_fft clamps slightly negative values instead of raising."""
+    """Test that spectral_fact_fft clamps slightly negative values."""
     # This autocorrelation produces min(R) ≈ -6.7e-5, which is in (-1e-4, 0]
     r = np.array([1.213065, 0.606566, 0.0])
     h = spectral_fact_fft(r)
