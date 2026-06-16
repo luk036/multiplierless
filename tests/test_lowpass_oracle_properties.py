@@ -6,7 +6,7 @@ from hypothesis.strategies import integers
 from multiplierless.lowpass_oracle_q import LowpassOracleQ
 
 
-def test_lowpass_oracle_q_initialization():
+def test_lowpass_oracle_q_initialization() -> None:
     """Test that LowpassOracleQ initializes correctly."""
     N = 32
     nnz = 5
@@ -19,7 +19,7 @@ def test_lowpass_oracle_q_initialization():
     assert oracle.num_retries == 0
 
 
-def test_lowpass_oracle_q_rcsd_properties():
+def test_lowpass_oracle_q_rcsd_properties() -> None:
     """Test that rcsd has expected properties after first assessment."""
     N = 32
     nnz = 5
@@ -39,7 +39,7 @@ def test_lowpass_oracle_q_rcsd_properties():
     assert oracle.num_retries == 0
 
 
-def test_lowpass_oracle_q_cut_properties():
+def test_lowpass_oracle_q_cut_properties() -> None:
     """Test that returned cut has expected structure."""
     N = 32
     nnz = 5
@@ -72,7 +72,7 @@ def test_lowpass_oracle_q_cut_properties():
         )
 
 
-def test_lowpass_oracle_q_retry_behavior():
+def test_lowpass_oracle_q_retry_behavior() -> None:
     """Test that retry behavior is consistent."""
     N = 32
     nnz = 5
@@ -107,7 +107,7 @@ def test_lowpass_oracle_q_retry_behavior():
         )
 
 
-def test_lowpass_oracle_q_sp_sq_consistency():
+def test_lowpass_oracle_q_sp_sq_consistency() -> None:
     """Test that Spsq values are consistent."""
     N = 32
     nnz = 5
@@ -137,7 +137,7 @@ def test_lowpass_oracle_q_sp_sq_consistency():
         )
 
 
-def test_lowpass_oracle_q_can_retry_logic():
+def test_lowpass_oracle_q_can_retry_logic() -> None:
     """Test that can_retry flag is logical."""
     N = 32
     nnz = 5
@@ -182,7 +182,7 @@ def test_lowpass_oracle_q_can_retry_logic():
 
 @given(integers(min_value=16, max_value=32), integers(min_value=3, max_value=8))
 @settings(max_examples=5, deadline=2000)
-def test_lowpass_oracle_q_input_invariance(N, nnz):
+def test_lowpass_oracle_q_input_invariance(N, nnz) -> None:
     """Test that oracle behavior is consistent with different valid inputs."""
     lowpass = create_lowpass_case(N)
     oracle = LowpassOracleQ(nnz, lowpass)
@@ -217,7 +217,7 @@ def test_lowpass_oracle_q_input_invariance(N, nnz):
 
 @given(integers(min_value=16, max_value=24), integers(min_value=3, max_value=6))
 @settings(max_examples=3, deadline=2000)
-def test_lowpass_oracle_q_basic_functionality(N, nnz):
+def test_lowpass_oracle_q_basic_functionality(N, nnz) -> None:
     """Test basic functionality with property-based testing."""
     lowpass = create_lowpass_case(N)
     oracle = LowpassOracleQ(nnz, lowpass)

@@ -6,7 +6,7 @@ from pytest import approx
 from multiplierless.spectral_fact import inverse_spectral_fact, spectral_fact
 
 
-def test_spectral_fact_basic():
+def test_spectral_fact_basic() -> None:
     """Basic test to verify spectral_fact works with known input."""
     h = np.array(
         [
@@ -33,7 +33,7 @@ def test_spectral_fact_basic():
     )
 )
 @settings(max_examples=20, deadline=1000)
-def test_spectral_fact_output_properties(r_list):
+def test_spectral_fact_output_properties(r_list) -> None:
     """Property: spectral_fact output has expected mathematical properties.
 
     The impulse response h from spectral_fact should:
@@ -69,7 +69,7 @@ def test_spectral_fact_output_properties(r_list):
         )
 
 
-def test_inverse_spectral_fact_autocorrelation_property():
+def test_inverse_spectral_fact_autocorrelation_property() -> None:
     """Property: inverse_spectral_fact produces valid auto-correlation.
 
     The function returns the top-half of the auto-correlation coefficients.
@@ -95,7 +95,7 @@ def test_inverse_spectral_fact_autocorrelation_property():
 
 @given(integers(min_value=3, max_value=15))
 @settings(max_examples=10, deadline=1000)
-def test_spectral_fact_delta_function(n):
+def test_spectral_fact_delta_function(n) -> None:
     """Property: delta function input produces delta function output.
 
     When the auto-correlation is a delta function (r[0]=1, r[i>0]=0),
@@ -112,7 +112,7 @@ def test_spectral_fact_delta_function(n):
     assert np.allclose(h[1:], 0.0, atol=1e-10)
 
 
-def test_spectral_fact_simple_roundtrip():
+def test_spectral_fact_simple_roundtrip() -> None:
     """Property: Simple roundtrip test with specific cases.
 
     For specific positive inputs, the roundtrip should work.
@@ -145,7 +145,7 @@ def test_spectral_fact_simple_roundtrip():
             )
 
 
-def test_spectral_fact_positive_definite_inputs():
+def test_spectral_fact_positive_definite_inputs() -> None:
     """Property: spectral_fact works with positive definite inputs.
 
     Test with artificially constructed positive definite inputs.

@@ -2,7 +2,7 @@ import subprocess
 import sys
 
 
-def test_version_unknown_on_package_not_found():
+def test_version_unknown_on_package_not_found() -> None:
     """When the package metadata is unavailable, __version__ should be 'unknown'.
 
     Runs in a subprocess to get a clean import environment.
@@ -27,7 +27,7 @@ with patch("importlib.metadata.version", side_effect=PackageNotFoundError("multi
     assert result.returncode == 0, f"Subprocess failed: {result.stderr}"
 
 
-def test_version_is_string():
+def test_version_is_string() -> None:
     """Check that __version__ is a string (basic sanity)."""
     from multiplierless import __version__
 
