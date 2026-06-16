@@ -8,6 +8,7 @@ optimization with CSD-quantized coefficients, and outputs:
 
 import json
 import sys
+from typing import Any, Optional
 
 import numpy as np
 from csdigit.csd import to_csdnnz
@@ -23,8 +24,8 @@ from multiplierless.spectral_fact import spectral_fact_fft, spectral_fact_root
 
 
 def create_lowpass_case_params(
-    N, wpass, wstop, delta0_wpass, delta0_wstop, discretization_factor
-):
+    N: int, wpass: float, wstop: float, delta0_wpass: float, delta0_wstop: float, discretization_factor: int
+) -> Any:
     """Build a LowpassOracle with fully parameterized filter specs."""
     from math import floor
 
@@ -48,7 +49,7 @@ def create_lowpass_case_params(
     sp_sq = stop_pass * stop_pass
 
     class Oracle:
-        def __init__(self):
+        def __init__(self) -> None:
             self.spectrum = spectrum
             self.nwpass = nwpass
             self.nwstop = nwstop
@@ -63,7 +64,7 @@ def create_lowpass_case_params(
             self._mdim = mdim
             self._ndim = N
 
-        def assess_feas(self, x):
+        def assess_feas(self, x: np.ndarray) -> Any:
             mdim, ndim = self.spectrum.shape
             for _ in range(self.nwpass):
                 self.idx1 += 1
@@ -104,7 +105,7 @@ def create_lowpass_case_params(
                 return grad, -x[0]
             return None
 
-        def assess_optim(self, xc, gamma):
+        def assess_optim(self, xc: np.ndarray, gamma: float) -> Any:
             self.sp_sq = gamma
             if cut := self.assess_feas(xc):
                 return cut, None
@@ -128,7 +129,7 @@ DEFAULTS = {
 }
 
 
-def main(argv=None):
+def main(argv: Optional[list[str]] = None) -> int:
     """CLI entry point for multiplierless FIR filter design.
 
     Reads filter specifications from a JSON file, runs ellipsoid-method

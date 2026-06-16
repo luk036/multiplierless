@@ -1,4 +1,5 @@
 import json
+import pathlib
 
 import numpy as np
 import pytest
@@ -70,14 +71,14 @@ class TestMain:
         with pytest.raises(FileNotFoundError):
             main(["nonexistent_file.json"])
 
-    def test_main_default_argv_empty(self, monkeypatch) -> None:
+    def test_main_default_argv_empty(self, monkeypatch: pytest.MonkeyPatch) -> None:
         import sys
 
         monkeypatch.setattr(sys, "argv", ["prog"])
         ret = main()
         assert ret == 1
 
-    def test_main_optimization_failure(self, tmp_path) -> None:
+    def test_main_optimization_failure(self, tmp_path: pathlib.Path) -> None:
         import json
 
         spec = {
@@ -98,7 +99,7 @@ class TestMain:
         ret = main([str(spec_file)])
         assert ret == 1
 
-    def test_main_with_valid_spec(self, tmp_path) -> None:
+    def test_main_with_valid_spec(self, tmp_path: pathlib.Path) -> None:
         spec = {
             "filter_order": 32,
             "passband_edge": 0.12,
@@ -118,7 +119,7 @@ class TestMain:
         ret = main([str(spec_file)])
         assert ret == 0
 
-    def test_main_with_root_spectral_method(self, tmp_path) -> None:
+    def test_main_with_root_spectral_method(self, tmp_path: pathlib.Path) -> None:
         spec = {
             "filter_order": 32,
             "passband_edge": 0.12,
@@ -152,7 +153,7 @@ class TestMain:
         assert result.returncode == 1
         assert "Usage" in result.stderr
 
-    def test_main_with_verilog_output(self, tmp_path) -> None:
+    def test_main_with_verilog_output(self, tmp_path: pathlib.Path) -> None:
         spec = {
             "filter_order": 32,
             "passband_edge": 0.12,

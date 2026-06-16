@@ -182,7 +182,7 @@ def test_lowpass_oracle_q_can_retry_logic() -> None:
 
 @given(integers(min_value=16, max_value=32), integers(min_value=3, max_value=8))
 @settings(max_examples=5, deadline=2000)
-def test_lowpass_oracle_q_input_invariance(N, nnz) -> None:
+def test_lowpass_oracle_q_input_invariance(N: int, nnz: int) -> None:
     """Test that oracle behavior is consistent with different valid inputs."""
     lowpass = create_lowpass_case(N)
     oracle = LowpassOracleQ(nnz, lowpass)
@@ -217,7 +217,7 @@ def test_lowpass_oracle_q_input_invariance(N, nnz) -> None:
 
 @given(integers(min_value=16, max_value=24), integers(min_value=3, max_value=6))
 @settings(max_examples=3, deadline=2000)
-def test_lowpass_oracle_q_basic_functionality(N, nnz) -> None:
+def test_lowpass_oracle_q_basic_functionality(N: int, nnz: int) -> None:
     """Test basic functionality with property-based testing."""
     lowpass = create_lowpass_case(N)
     oracle = LowpassOracleQ(nnz, lowpass)
