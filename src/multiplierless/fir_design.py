@@ -24,7 +24,12 @@ from multiplierless.spectral_fact import spectral_fact_fft, spectral_fact_root
 
 
 def create_lowpass_case_params(
-    N: int, wpass: float, wstop: float, delta0_wpass: float, delta0_wstop: float, discretization_factor: int
+    N: int,
+    wpass: float,
+    wstop: float,
+    delta0_wpass: float,
+    delta0_wstop: float,
+    discretization_factor: int,
 ) -> Any:
     """Build a LowpassOracle with fully parameterized filter specs."""
     from math import floor
