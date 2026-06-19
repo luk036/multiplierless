@@ -20,23 +20,18 @@ The code uses spectral factorization, inverse spectral
 factorization, and CSD (Canonical Signed Digit) representation.
 """
 
-from typing import Any, Optional, Tuple, Union
+from typing import Any, Optional, Tuple
 
 import numpy as np
 from csdigit.csd import to_csdnnz, to_decimal
+from ellalgo.ell_typing import OracleOptimQ
 
 from .spectral_fact import inverse_spectral_fact, spectral_fact
 
 __all__ = ["LowpassOracleQ"]
 
-#: Type alias for array-like values or floats used in filter coefficient representation.
-Arr = Union[np.ndarray, float]
 
-#: Type alias for a cutting plane, represented as a tuple of (gradient, intercept).
-Cut = Tuple[Arr, float]
-
-
-class LowpassOracleQ:
+class LowpassOracleQ(OracleOptimQ[np.ndarray]):
     """Oracle for multiplierless lowpass filter design with CSD constraints.
 
     This oracle integrates spectral factorization with Canonical Signed Digit
@@ -64,8 +59,8 @@ class LowpassOracleQ:
         self.num_retries = 0
 
     def assess_optim_q(
-        self, r: Arr, Spsq: float, retry: bool
-    ) -> Tuple[Cut, Arr, Optional[float], bool]:
+        self, r: np.ndarray, Spsq: float, retry: bool
+    ) -> Tuple[Tuple[np.ndarray, float], np.ndarray, Optional[float], bool]:
         """Assesses and optimizes the lowpass filter design with CSD constraints.
 
         Args:

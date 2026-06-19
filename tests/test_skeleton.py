@@ -72,8 +72,7 @@ def test_run(monkeypatch: pytest.MonkeyPatch) -> None:
     from multiplierless.skeleton import run
 
     monkeypatch.setattr(sys, "argv", ["multiplierless"])
-    result = run()
-    assert result is None
+    run()
 
 
 def test_main_guard_via_subprocess() -> None:
