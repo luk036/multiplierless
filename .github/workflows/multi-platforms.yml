@@ -35,8 +35,8 @@ jobs:
           conda install setuptools wheel setuptools_scm
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           pip install git+https://github.com/luk036/csdigit.git
-          pip install git+https://github.com/luk036/lds-gen.git
           pip install git+https://github.com/luk036/ginger.git
+          pip install --force-reinstall git+https://github.com/luk036/lds-gen.git
           pip install git+https://github.com/luk036/ellalgo.git
           pip install -e .
           pytest
