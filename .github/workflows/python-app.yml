@@ -29,9 +29,9 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           pip install git+https://github.com/luk036/csdigit.git
           pip install git+https://github.com/luk036/ginger.git
-          pip install --force-reinstall git+https://github.com/luk036/lds-gen.git
           pip install git+https://github.com/luk036/ellalgo.git
           python setup.py develop
+          pip install --force-reinstall --no-deps git+https://github.com/luk036/lds-gen.git
 
       - name: Lint with flake8
         run: |
