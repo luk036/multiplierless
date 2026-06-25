@@ -37,5 +37,4 @@ jobs:
           pip install git+https://github.com/luk036/csdigit.git
           pip install git+https://github.com/luk036/ginger.git
           pip install -e .
-          pip install --force-reinstall --no-deps git+https://github.com/luk036/lds-gen.git
           pytest
