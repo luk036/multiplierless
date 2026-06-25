@@ -438,26 +438,31 @@ def main(argv: Optional[list[str]] = None) -> int:
         else:
             verilog = generate_csd_multipliers(coeff_tuples, module_name)
             # Fix missing commas between port declarations (known csdigit issue)
+            lines = verilog.splitlines(keepends=True)
             fixed = []
-            in_ports = False
-            for line in verilog.splitlines(keepends=True):
-                if in_ports:
-                    stripped = line.rstrip()
-                    if stripped == ");":
-                        in_ports = False
+            port_lines: list[int] = []
+            module_start = -1
+            paren_end = -1
+            for i, line in enumerate(lines):
+                if line.strip().startswith("module ") and "(" in line:
+                    module_start = i
+                if module_start >= 0 and paren_end < 0:
+                    if ");" in line:
+                        paren_end = i
+                    elif module_start != i:
+                        port_lines.append(i)
+            # Add commas to all port lines except the last
+            for idx, pi in enumerate(port_lines):
+                line = lines[pi]
+                stripped = line.rstrip()
+                code_part = stripped.split("//")[0].rstrip()
+                if not code_part.endswith(",") and idx < len(port_lines) - 1:
+                    if "//" in stripped:
+                        ci = stripped.index("//")
+                        lines[pi] = code_part + ",\n" + stripped[ci:] + "\n"
                     else:
-                        # Strip inline comments to check for existing comma
-                        code_part = stripped.split("//")[0].rstrip()
-                        if not code_part.endswith(","):
-                            if "//" in stripped:
-                                idx = stripped.index("//")
-                                line = code_part + ",\n" + stripped[idx:] + "\n"
-                            else:
-                                line = code_part + ",\n"
-                if line.strip().startswith("module "):
-                    in_ports = True
-                fixed.append(line)
-            output["verilog"] = "".join(fixed)
+                        lines[pi] = code_part + ",\n"
+            output["verilog"] = "".join(lines)
 
     json.dump(output, sys.stdout, indent=2)
     print()

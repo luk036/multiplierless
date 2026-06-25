@@ -1,3 +1,4 @@
+`timescale 1ns/1ps
 
 module fir_filter_direct_py (
     input signed [15:0] x,      // Input value
