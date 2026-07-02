@@ -5,6 +5,7 @@ Usage:
     python sim/run.py --form transpose          # transpose only
     python sim/run.py --form direct             # direct only
 """
+
 import argparse
 import os
 import subprocess
@@ -12,6 +13,7 @@ import sys
 from pathlib import Path
 
 import cocotb as _cocotb
+
 COCOTB_PKG = Path(_cocotb.__file__).parent
 COCOTB_LIBS = COCOTB_PKG / "libs"
 VPI_LIB = "cocotbvpi_icarus"
@@ -19,7 +21,9 @@ VPI_LIB = "cocotbvpi_icarus"
 PROJECT = Path(__file__).resolve().parent.parent
 
 
-def build_and_run(verilog_file: str, top: str, test_module: str, coeff_json: str) -> bool:
+def build_and_run(
+    verilog_file: str, top: str, test_module: str, coeff_json: str
+) -> bool:
     """Compile Verilog and run cocotb test. Returns True on success."""
     vvp_file = Path("sim_build") / f"{top}.vvp"
     vvp_file.parent.mkdir(parents=True, exist_ok=True)
@@ -32,7 +36,10 @@ def build_and_run(verilog_file: str, top: str, test_module: str, coeff_json: str
         encoding="utf-8",
     )
     cmd_build = [
-        "iverilog", "-g2012", "-o", str(vvp_file),
+        "iverilog",
+        "-g2012",
+        "-o",
+        str(vvp_file),
         str(combined),
     ]
     r = subprocess.run(cmd_build, capture_output=True, text=True)
@@ -57,8 +64,11 @@ def build_and_run(verilog_file: str, top: str, test_module: str, coeff_json: str
         env["PYGPI_PYTHON_BIN"] = str(py_exe)
 
     cmd_run = [
-        "vvp", "-M", str(COCOTB_LIBS),
-        "-m", VPI_LIB,
+        "vvp",
+        "-M",
+        str(COCOTB_LIBS),
+        "-m",
+        VPI_LIB,
         str(vvp_file),
     ]
     r = subprocess.run(cmd_run, capture_output=True, text=True, env=env)
@@ -76,18 +86,32 @@ def build_and_run(verilog_file: str, top: str, test_module: str, coeff_json: str
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run cocotb verification")
-    parser.add_argument("--form", choices=["transpose", "direct", "both"],
-                        default="both")
+    parser.add_argument(
+        "--form", choices=["transpose", "direct", "both"], default="both"
+    )
     args = parser.parse_args()
 
     tests = []
     if args.form in ("transpose", "both"):
-        tests.append(("fir_filter_py.v", "fir_filter", "test_transpose",
-                       "fir_filter_output.json", "Transpose-form"))
+        tests.append(
+            (
+                "fir_filter_py.v",
+                "fir_filter",
+                "test_transpose",
+                "fir_filter_output.json",
+                "Transpose-form",
+            )
+        )
     if args.form in ("direct", "both"):
-        tests.append(("fir_filter_direct_py.v", "fir_filter_direct_py",
-                       "test_direct", "fir_filter_direct_output.json",
-                       "Direct-form"))
+        tests.append(
+            (
+                "fir_filter_direct_py.v",
+                "fir_filter_direct_py",
+                "test_direct",
+                "fir_filter_direct_output.json",
+                "Direct-form",
+            )
+        )
 
     all_ok = True
     for v_file, top, module, json_file, label in tests:

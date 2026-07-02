@@ -1,4 +1,5 @@
 """cocotb test for transpose-form FIR filter impulse response."""
+
 import json
 import os
 from pathlib import Path
@@ -12,9 +13,9 @@ def _csd_to_int(csd_str: str) -> int:
     val = 0
     for i, ch in enumerate(csd_str):
         power = len(csd_str) - 1 - i
-        if ch == '+':
+        if ch == "+":
             val += 1 << power
-        elif ch == '-':
+        elif ch == "-":
             val -= 1 << power
     return val
 

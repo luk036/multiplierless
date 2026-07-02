@@ -1,4 +1,5 @@
 """cocotb test for direct-form FIR multiplier bank."""
+
 import json
 import os
 from pathlib import Path
@@ -12,9 +13,9 @@ def _csd_to_int(csd_str: str) -> int:
     val = 0
     for i, ch in enumerate(csd_str):
         power = len(csd_str) - 1 - i
-        if ch == '+':
+        if ch == "+":
             val += 1 << power
-        elif ch == '-':
+        elif ch == "-":
             val -= 1 << power
     return val
 
@@ -56,13 +57,11 @@ async def test_direct_multipliers(dut):
     expected = _load_expected()
     N = len(expected)
     port_names = _output_port_names(dut)
-    assert len(port_names) == N, (
-        f"Found {len(port_names)} output ports, expected {N}"
-    )
+    assert len(port_names) == N, f"Found {len(port_names)} output ports, expected {N}"
     dut._log.info("Testing %d-tap direct-form multiplier bank", N)
 
     # Output bit width: detect from first output port
-    bits = len(dut.h0.value) if hasattr(dut, 'h0') else 38
+    bits = len(dut.h0.value) if hasattr(dut, "h0") else 38
     test_values = [1, -1, 127, -128]
     errors = 0
 

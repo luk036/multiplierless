@@ -72,9 +72,7 @@ def _find_cross_patterns(
                 if nnz >= min_nnz:
                     patterns.setdefault(sub, []).append((ci, i))
     return {
-        sub: occ
-        for sub, occ in patterns.items()
-        if len({ci for ci, _ in occ}) >= 2
+        sub: occ for sub, occ in patterns.items() if len({ci for ci, _ in occ}) >= 2
     }
 
 
@@ -137,7 +135,9 @@ def _generate_transpose_verilog(
                 f"for coefficient '{name}'"
             )
         if not all(ch in "+-0" for ch in csd):
-            raise ValueError(f"CSD string '{csd}' for '{name}' can only contain '+', '-', or '0'")
+            raise ValueError(
+                f"CSD string '{csd}' for '{name}' can only contain '+', '-', or '0'"
+            )
 
     all_powers: set[int] = set()
     for _, csd, _, _ in coeffs:
@@ -152,10 +152,12 @@ def _generate_transpose_verilog(
     best_pattern: str | None = None
     best_occurrences: list[tuple[int, int]] = []
     if cross:
+
         def _score(item):
             sub, occ = item
             nnz = sub.count("+") + sub.count("-")
             return (nnz - 1) * (len(occ) - 1)
+
         best_pattern, best_occurrences = max(cross.items(), key=_score)
 
     cse_base_pos = 0
@@ -176,7 +178,9 @@ def _generate_transpose_verilog(
             v += f"\n    wire signed [{output_width - 1}:0] x_shift{p} = x <<< {p};"
 
     if best_pattern:
-        cse_expr = _build_range_expr(best_pattern, 0, len(best_pattern), max_power - cse_base_pos)
+        cse_expr = _build_range_expr(
+            best_pattern, 0, len(best_pattern), max_power - cse_base_pos
+        )
         v += f'\n\n    // Cross-CSE: shared pattern "{best_pattern}"'
         v += f"\n    wire signed [{output_width - 1}:0] _cse_0 = {cse_expr};"
 
@@ -195,7 +199,9 @@ def _generate_transpose_verilog(
         _name, csd_str, _iw, _mp = coeffs[coeff_idx]
 
         if best_pattern and coeff_idx in cse_coeffs:
-            expr = _build_coeff_expr(csd_str, max_power, best_pattern, cse_base_pos, "_cse_0")
+            expr = _build_coeff_expr(
+                csd_str, max_power, best_pattern, cse_base_pos, "_cse_0"
+            )
         else:
             expr = _build_coeff_expr(csd_str, max_power, None, 0, "")
 
@@ -432,9 +438,7 @@ def main(argv: Optional[list[str]] = None) -> int:
             coeff_tuples.append((f"h{i}", raw, input_width, max_power))
 
         if verilog_form == "transpose":
-            output["verilog"] = _generate_transpose_verilog(
-                coeff_tuples, module_name
-            )
+            output["verilog"] = _generate_transpose_verilog(coeff_tuples, module_name)
         else:
             verilog = generate_csd_multipliers(coeff_tuples, module_name)
             # Fix missing commas between port declarations (known csdigit issue)

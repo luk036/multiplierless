@@ -22,9 +22,9 @@ def csd_to_int(csd_str: str) -> int:
     val = 0
     for i, ch in enumerate(csd_str):
         power = len(csd_str) - 1 - i
-        if ch == '+':
+        if ch == "+":
             val += 1 << power
-        elif ch == '-':
+        elif ch == "-":
             val -= 1 << power
     return val
 
@@ -38,11 +38,11 @@ def parse_widths(verilog: str) -> tuple[int, int]:
     """Parse input_width and output_width from Verilog module text."""
     iw = ow = None
     for line in verilog.splitlines():
-        m = re.search(r'input\s+signed\s+\[(\d+):0\]', line)
-        if m and 'x' in line:
+        m = re.search(r"input\s+signed\s+\[(\d+):0\]", line)
+        if m and "x" in line:
             iw = int(m.group(1)) + 1
-        m = re.search(r'output\s+signed\s+\[(\d+):0\]', line)
-        if m and ('y' in line or 'h0' in line):
+        m = re.search(r"output\s+signed\s+\[(\d+):0\]", line)
+        if m and ("y" in line or "h0" in line):
             ow = int(m.group(1)) + 1
     if iw is None:
         raise ValueError("Could not parse input_width from Verilog")
@@ -174,12 +174,14 @@ def gen_tb_direct(data: dict) -> str:
     # Collect output port names and widths
     port_widths = []
     for line in verilog.splitlines():
-        m = re.search(r'output\s+signed\s+\[(\d+):0\]\s+(\w+)', line)
+        m = re.search(r"output\s+signed\s+\[(\d+):0\]\s+(\w+)", line)
         if m:
             port_widths.append((m.group(2), int(m.group(1)) + 1))
 
     # Build port declarations and connections
-    port_decls = "\n".join(f"    wire signed [{pw - 1}:0] {name};" for name, pw in port_widths)
+    port_decls = "\n".join(
+        f"    wire signed [{pw - 1}:0] {name};" for name, pw in port_widths
+    )
     port_connects = "\n".join(
         f"        .{name}({name})" + ("," if i < len(port_widths) - 1 else "")
         for i, (name, _pw) in enumerate(port_widths)
@@ -212,7 +214,7 @@ def gen_tb_direct(data: dict) -> str:
 
     mod_name = None
     for line in verilog.splitlines():
-        m = re.search(r'module\s+(\w+)', line)
+        m = re.search(r"module\s+(\w+)", line)
         if m:
             mod_name = m.group(1)
             break
