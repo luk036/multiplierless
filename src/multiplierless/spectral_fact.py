@@ -11,6 +11,10 @@ __all__ = [
     "inverse_spectral_fact",
 ]
 
+# Cache for spectral_fact_fft: Bn/An matrices depend only on n (filter order),
+# not on the input r, so we compute them once per distinct n.
+_fft_cache: dict[int, tuple[np.ndarray, np.ndarray]] = {}
+
 
 def spectral_fact_root(r: np.ndarray, tolerance: float = 1e-8) -> np.ndarray:
     """Spectral factorization via Aberth-Ehrlich root-finding.
@@ -76,10 +80,13 @@ def spectral_fact_fft(r: np.ndarray) -> np.ndarray:
     mult_factor = 100
     m = mult_factor * n
 
-    w = np.linspace(0, 2 * np.pi, m, endpoint=False)
-    Bn = np.outer(w, np.arange(1, n))
-    An = 2 * np.cos(Bn)
-    R = np.hstack((np.ones((m, 1)), An)) @ r
+    if n not in _fft_cache:
+        w = np.linspace(0, 2 * np.pi, m, endpoint=False)
+        Bn = np.outer(w, np.arange(1, n))
+        An = 2 * np.cos(Bn)
+        _fft_cache[n] = (np.ones((m, 1)), An)
+    ones, An = _fft_cache[n]
+    R = np.hstack((ones, An)) @ r
 
     min_val = np.min(R)
     if min_val <= 0:
