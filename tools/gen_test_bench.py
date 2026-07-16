@@ -7,8 +7,8 @@ Reads the JSON output from fir_design and creates test benches that:
   4. Report PASS/FAIL via $display/$error
 
 Usage:
-    python tools/gen_test_bench.py                          # uses fir_filter_output.json
-    python tools/gen_test_bench.py my_output.json           # custom output file
+    python tools/gen_test_bench.py          # uses fir_filter_output.json
+    python tools/gen_test_bench.py my_output.json  # custom output file
 """
 
 import json
@@ -101,7 +101,8 @@ module tb_fir_filter_transpose;
         errors = 0;
         $display("========================================");
         $display("Transpose-Form FIR Filter Test Bench");
-        $display("N=%0d, input_width=%0d, output_width=%0d", {N}, {input_width}, {output_width});
+        $display("N=%0d, input_width=%0d, output_width=%0d",
+                 {N}, {input_width}, {output_width});
         $display("========================================");
         $display("");
 
@@ -200,7 +201,10 @@ def gen_tb_direct(data: dict) -> str:
             exp = expected[i] * tv
             exp_str = f"{pw}'sd{abs(exp)}" if exp >= 0 else f"-{pw}'sd{abs(exp)}"
             block += f"        if ({name} !== {exp_str}) begin\n"
-            block += f'            $display("FAIL: x={tv}, {name}=%0d, expected=%0d", {name}, {exp});\n'
+            block += (
+                f'            $display("FAIL: x={tv}, {name}=%0d,'
+                f' expected=%0d", {name}, {exp});\n'
+            )
             block += "            errors = errors + 1;\n"
             block += "        end else begin\n"
             block += f'            $display("PASS: x={tv}, {name}=%0d", {name});\n'
