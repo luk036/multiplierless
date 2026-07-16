@@ -443,7 +443,7 @@ def main(argv: Optional[list[str]] = None) -> int:
             verilog = generate_csd_multipliers(coeff_tuples, module_name)
             # Fix missing commas between port declarations (known csdigit issue)
             lines = verilog.splitlines(keepends=True)
-            fixed = []
+            fixed: list[str] = []
             port_lines: list[int] = []
             module_start = -1
             paren_end = -1
