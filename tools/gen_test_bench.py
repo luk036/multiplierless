@@ -187,9 +187,6 @@ def gen_tb_direct(data: dict) -> str:
         for i, (name, _pw) in enumerate(port_widths)
     )
 
-    # Build per-coefficient expected values for the case statement
-    expected_hex = [f"        {pw}'sd{e}" for (_, pw), e in zip(port_widths, expected)]
-
     # Build test: apply several test values
     test_values = [1, -1, 127, -128]
     test_blocks = []
