@@ -1,4 +1,4 @@
-"""Spectral Factorization — root-finding (default) + FFT (legacy)."""
+"""Spectral Factorization — root-finding (default) + FFT (optimized)."""
 
 import numpy as np
 from ginger.aberth import aberth_autocorr, initial_aberth_autocorr, poly_from_roots
@@ -10,10 +10,6 @@ __all__ = [
     "spectral_fact_root",
     "inverse_spectral_fact",
 ]
-
-# Cache for spectral_fact_fft: Bn/An matrices depend only on n (filter order),
-# not on the input r, so we compute them once per distinct n.
-_fft_cache: dict[int, tuple[np.ndarray, np.ndarray]] = {}
 
 
 def spectral_fact_root(r: np.ndarray, tolerance: float = 1e-8) -> np.ndarray:
@@ -74,19 +70,38 @@ def spectral_fact(r: np.ndarray) -> np.ndarray:
     return spectral_fact_fft(r)
 
 
+# Pre-computed frequency grid for one-sided cosine matrix (depends only on n).
+# Retained as fallback; the primary path now uses rfft for the power spectrum.
+_fft_cache: dict[int, tuple[np.ndarray, np.ndarray]] = {}
+
+
+def _power_spectrum_fft(r: np.ndarray) -> np.ndarray:
+    """Compute power spectrum via rfft (matches C++ / Rust approach).
+
+    Zero-pads the autocorrelation sequence to length *m*, takes ``rfft``,
+    then returns ``R[k] = 2 · Re(S[k]) - r₀``.
+    """
+    n = len(r)
+    m = 100 * n
+    pad = np.zeros(m)
+    pad[:n] = r
+    S = np.fft.rfft(pad)
+    r0 = float(r[0])
+    half = m // 2
+    R = np.empty(m)
+    R[: half + 1] = 2.0 * S.real - r0
+    R[half + 1 :] = R[1 : m - half][::-1]
+    return R
+
+
 def spectral_fact_fft(r: np.ndarray) -> np.ndarray:
-    """Kolmogorov 1939 via FFT (legacy)."""
+    """Kolmogorov 1939 via FFT — rfft-based power spectrum (faster)."""
     n = len(r)
     mult_factor = 100
     m = mult_factor * n
 
-    if n not in _fft_cache:
-        w = np.linspace(0, 2 * np.pi, m, endpoint=False)
-        Bn = np.outer(w, np.arange(1, n))
-        An = 2 * np.cos(Bn)
-        _fft_cache[n] = (np.ones((m, 1)), An)
-    ones, An = _fft_cache[n]
-    R = np.hstack((ones, An)) @ r
+    # FFT-based power spectrum (O(m log m) instead of O(m·n))
+    R = _power_spectrum_fft(r)
 
     min_val = np.min(R)
     if min_val <= 0:

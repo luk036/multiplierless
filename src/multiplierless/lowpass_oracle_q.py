@@ -20,15 +20,36 @@ The code uses spectral factorization, inverse spectral
 factorization, and CSD (Canonical Signed Digit) representation.
 """
 
+from math import ceil, fabs, ldexp, log2
 from typing import Any, Optional, Tuple
 
 import numpy as np
-from csdigit.csd import to_csdnnz, to_decimal
 from ellalgo.ell_typing import OracleOptimQ
 
 from .spectral_fact import inverse_spectral_fact, spectral_fact
 
-__all__ = ["LowpassOracleQ"]
+__all__ = ["LowpassOracleQ", "csd_quantize"]
+
+
+def csd_quantize(num: float, nnz: int) -> float:
+    """Direct double → double CSD quantization (no string round-trip).
+
+    Matches C++ `csd_quantize()` — uses
+    ``ldexp(1.0, ceil(log2(|num| · 1.5)) - 1)``
+    and iteratively subtracts powers of two up to *nnz* non-zero digits.
+    """
+    if num == 0.0 or nnz == 0:
+        return 0.0
+    result = 0.0
+    bit_val = ldexp(1.0, int(ceil(log2(fabs(num) * 1.5))) - 1)
+    while nnz > 0 and fabs(num) > 1e-100:
+        if fabs(1.5 * num) > bit_val:
+            sgn = 1.0 if num > 0 else -1.0
+            result += sgn * bit_val
+            num -= sgn * bit_val
+            nnz -= 1
+        bit_val *= 0.5
+    return result
 
 
 class LowpassOracleQ(OracleOptimQ[np.ndarray]):
@@ -38,21 +59,9 @@ class LowpassOracleQ(OracleOptimQ[np.ndarray]):
     (CSD) representation to enable optimization of FIR filter coefficients
     while constraining the number of non-zero CSD digits. It is used in
     ellipsoid method optimization to iteratively refine filter designs.
-
-    The oracle assesses feasibility and optimizes filter coefficients by:
-    1. Converting coefficients to minimum-phase impulse response
-    2. Converting to CSD representation with the specified constraint
-    3. Computing the inverse spectral factorization
-    4. Using cutting planes to guide optimization
     """
 
     def __init__(self, nnz: int, lowpass: Any) -> None:
-        """Initializes the LowpassOracleQ object.
-
-        Args:
-            nnz (int): Number of non-zero elements in CSD representation.
-            lowpass (object): Lowpass filter with assess_feas and assess_optim.
-        """
         self.nnz = nnz
         self.lowpass = lowpass
         self.rcsd = np.array([0])
@@ -61,24 +70,13 @@ class LowpassOracleQ(OracleOptimQ[np.ndarray]):
     def assess_optim_q(
         self, r: np.ndarray, Spsq: float, retry: bool
     ) -> Tuple[Tuple[np.ndarray, float], np.ndarray, Optional[float], bool]:
-        """Assesses and optimizes the lowpass filter design with CSD constraints.
-
-        Args:
-            r (Arr): Filter coefficients.
-            Spsq (float): Frequency response value.
-            retry (bool): Whether this is a retry attempt.
-
-        Returns:
-            Tuple: (cut, rcsd, Spsq2, can_retry) containing optimized
-            coefficients, CSD representation, updated response, and retry flag.
-        """
-        if not retry:  # retry due to no effect in the previous cut
+        if not retry:
             self.lowpass.spsq = Spsq
             if cut := self.lowpass.assess_feas(r):
                 return cut, r, None, True
             r_array = np.array([r]) if isinstance(r, float) else r
             h = spectral_fact(r_array)
-            hcsd = np.array([to_decimal(to_csdnnz(hi, self.nnz)) for hi in h])
+            hcsd = np.array([csd_quantize(float(hi), self.nnz) for hi in h])
             self.rcsd = inverse_spectral_fact(hcsd)
             self.num_retries = 0
         else:
