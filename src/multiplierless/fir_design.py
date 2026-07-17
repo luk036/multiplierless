@@ -16,7 +16,7 @@ from csdigit.csd_multiplier import generate_csd_multipliers
 from ellalgo.cutting_plane import Options, cutting_plane_optim_q
 from ellalgo.ell import Ell
 
-from multiplierless.lowpass_oracle_q import LowpassOracleQ
+from multiplierless.lowpass_oracle_q import LowpassOracleQ, csd_quantize
 from multiplierless.spectral_fact import spectral_fact_fft, spectral_fact_root
 
 # ============================================================
@@ -273,6 +273,8 @@ def create_lowpass_case_params(
             self.kmax = 0
             self._mdim = mdim
             self._ndim = N
+            # Pre-allocated gradient buffer (avoids np.zeros in hot path)
+            self._grad_buf = np.zeros(N)
 
         def assess_feas(self, x: np.ndarray) -> Any:
             mdim, ndim = self.spectrum.shape
@@ -310,9 +312,8 @@ def create_lowpass_case_params(
                 if v < 0:
                     return -col_k, -v
             if x[0] < 0:
-                grad = np.zeros(ndim)
-                grad[0] = -1.0
-                return grad, -x[0]
+                self._grad_buf[0] = -1.0
+                return self._grad_buf.copy(), -x[0]
             return None
 
         def assess_optim(self, xc: np.ndarray, gamma: float) -> Any:
@@ -411,7 +412,9 @@ def main(argv: Optional[list[str]] = None) -> int:
 
     coefficients = []
     for i, (hi, csd_str) in enumerate(zip(h, csd_strings)):
-        coefficients.append({"index": i, "value": float(hi), "csd": csd_str})
+        coefficients.append(
+            {"index": i, "value": csd_quantize(float(hi), csd_nnz), "csd": csd_str}
+        )
 
     output = {
         "filter_order": N,
