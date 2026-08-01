@@ -176,7 +176,6 @@ doctest_default_flags = 0
 # Global setup code for doctests - import the module so functions are available
 doctest_global_setup = """
 import numpy as np
-from multiplierless.skeleton import fib
 from multiplierless.spectral_fact import spectral_fact, inverse_spectral_fact
 """
 
