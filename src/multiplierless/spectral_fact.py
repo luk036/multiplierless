@@ -72,7 +72,6 @@ def spectral_fact(r: np.ndarray) -> np.ndarray:
 
 # Pre-computed frequency grid for one-sided cosine matrix (depends only on n).
 # Retained as fallback; the primary path now uses rfft for the power spectrum.
-_fft_cache: dict[int, tuple[np.ndarray, np.ndarray]] = {}
 
 
 def _power_spectrum_fft(r: np.ndarray) -> np.ndarray:

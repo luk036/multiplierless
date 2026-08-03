@@ -1,24 +1,4 @@
-"""
-Lowpass Oracle Q
-
-This code defines a class called LowpassOracleQ, which helps design
-multiplierless lowpass filters. A lowpass filter allows low-frequency
-signals to pass through while reducing or blocking high-frequency
-signals. The "multiplierless" aspect means the filter works without
-multiplication operations.
-
-The LowpassOracleQ class takes two inputs: 'nnz' (number of non-zero
-elements) and 'lowpass' (another object related to lowpass filter
-design).
-
-The main functionality is the 'assess_optim_q' method. It evaluates
-and optimizes the filter design by checking feasibility, converting to
-CSD representation, and calling the lowpass object's optimization
-method.
-
-The code uses spectral factorization, inverse spectral
-factorization, and CSD (Canonical Signed Digit) representation.
-"""
+"""Lowpass oracle with CSD quantization for multiplierless FIR filter design."""
 
 from math import ceil, fabs, ldexp, log2
 from typing import Any, Optional, Tuple
