@@ -8,7 +8,7 @@ optimization with CSD-quantized coefficients, and outputs:
 
 import json
 import sys
-from typing import Any, Optional
+from typing import Callable, Optional
 
 import numpy as np
 from csdigit.csd import to_csdnnz
@@ -16,8 +16,9 @@ from csdigit.csd_multiplier import generate_csd_multipliers
 from ellalgo.cutting_plane import Options, cutting_plane_optim_q
 from ellalgo.ell import Ell
 
+from multiplierless.lowpass_oracle import create_lowpass_case_params
 from multiplierless.lowpass_oracle_q import LowpassOracleQ, csd_quantize
-from multiplierless.spectral_fact import spectral_fact_fft, spectral_fact_root
+from multiplierless.spectral_fact import spectral_fact_select
 
 # ============================================================
 #  Internal helpers: transpose-form Verilog generator
@@ -224,106 +225,51 @@ def _generate_transpose_verilog(
     return v
 
 
+def _fix_verilog_ports(verilog: str) -> str:
+    """Fix missing commas between port declarations (known csdigit issue)."""
+    lines = verilog.splitlines(keepends=True)
+    port_lines: list[int] = []
+    module_start = -1
+    paren_end = -1
+    for i, line in enumerate(lines):
+        if line.strip().startswith("module ") and "(" in line:
+            module_start = i
+        if module_start >= 0 and paren_end < 0:
+            if ");" in line:
+                paren_end = i
+            elif module_start != i:
+                port_lines.append(i)
+    # Add commas to all port lines except the last
+    for idx, pi in enumerate(port_lines):
+        line = lines[pi]
+        stripped = line.rstrip()
+        code_part = stripped.split("//")[0].rstrip()
+        if not code_part.endswith(",") and idx < len(port_lines) - 1:
+            if "//" in stripped:
+                ci = stripped.index("//")
+                lines[pi] = code_part + ",\n" + stripped[ci:] + "\n"
+            else:
+                lines[pi] = code_part + ",\n"
+    return "".join(lines)
+
+
+def _generate_direct_verilog(
+    coeffs: list[tuple[str, str, int, int]], module_name: str
+) -> str:
+    """Generate a direct-form FIR Verilog module via csdigit."""
+    return _fix_verilog_ports(generate_csd_multipliers(coeffs, module_name))
+
+
+# Strategy registry: verilog form -> generator (transpose / direct)
+VerilogGenerator = Callable[[list[tuple[str, str, int, int]], str], str]
+VERILOG_GENERATORS: dict[str, VerilogGenerator] = {
+    "transpose": _generate_transpose_verilog,
+    "direct": _generate_direct_verilog,
+}
+
+
 # experiment/lowpass_oracle is not a package module; import by path if needed,
-# but we replicate create_lowpass_case_params_with_params inline to avoid coupling.
-
-
-def create_lowpass_case_params(
-    N: int,
-    wpass: float,
-    wstop: float,
-    delta0_wpass: float,
-    delta0_wstop: float,
-    discretization_factor: int,
-) -> Any:
-    """Build a LowpassOracle with fully parameterized filter specs."""
-    from math import floor
-
-    mdim = discretization_factor * N
-    w = np.linspace(0, np.pi, mdim)
-    temp = 2 * np.cos(np.outer(w, np.arange(1, N)))
-    spectrum = np.concatenate((np.ones((mdim, 1)), temp), axis=1)
-
-    nwpass = floor(wpass * np.pi * (mdim - 1) / np.pi) + 1
-    nwstop = floor(wstop * np.pi * (mdim - 1) / np.pi) + 1
-
-    delta1 = 20 * np.log10(1 + delta0_wpass)
-    delta2 = 20 * np.log10(delta0_wstop)
-
-    low_pass = pow(10, -delta1 / 20)
-    up_pass = pow(10, +delta1 / 20)
-    stop_pass = pow(10, +delta2 / 20)
-
-    lp_sq = low_pass * low_pass
-    up_sq = up_pass * up_pass
-    sp_sq = stop_pass * stop_pass
-
-    class Oracle:
-        def __init__(self) -> None:
-            self.spectrum = spectrum
-            self.nwpass = nwpass
-            self.nwstop = nwstop
-            self.lp_sq = lp_sq
-            self.up_sq = up_sq
-            self.sp_sq = sp_sq
-            self.idx1 = 0
-            self.idx2 = nwpass
-            self.idx3 = nwstop
-            self.fmax = float("-inf")
-            self.kmax = 0
-            self._mdim = mdim
-            self._ndim = N
-            # Pre-allocated gradient buffer (avoids np.zeros in hot path)
-            self._grad_buf = np.zeros(N)
-
-        def assess_feas(self, x: np.ndarray) -> Any:
-            mdim, ndim = self.spectrum.shape
-            for _ in range(self.nwpass):
-                self.idx1 += 1
-                if self.idx1 == self.nwpass:
-                    self.idx1 = 0
-                col_k = self.spectrum[self.idx1]
-                v = col_k.dot(x)
-                if v > self.up_sq:
-                    return col_k, (v - self.up_sq, v - self.lp_sq)
-                if v < self.lp_sq:
-                    return -col_k, (-v + self.lp_sq, -v + self.up_sq)
-            self.fmax = float("-inf")
-            self.kmax = 0
-            for _ in range(self.nwstop, mdim):
-                self.idx3 += 1
-                if self.idx3 == mdim:
-                    self.idx3 = self.nwstop
-                col_k = self.spectrum[self.idx3]
-                v = col_k.dot(x)
-                if v > self.sp_sq:
-                    return col_k, (v - self.sp_sq, v)
-                if v < 0:
-                    return -col_k, (-v, -v + self.sp_sq)
-                if v > self.fmax:
-                    self.fmax = v
-                    self.kmax = self.idx3
-            for _ in range(self.nwpass, self.nwstop):
-                self.idx2 += 1
-                if self.idx2 == self.nwstop:
-                    self.idx2 = self.nwpass
-                col_k = self.spectrum[self.idx2]
-                v = col_k.dot(x)
-                if v < 0:
-                    return -col_k, -v
-            if x[0] < 0:
-                self._grad_buf[0] = -1.0
-                return self._grad_buf.copy(), -x[0]
-            return None
-
-        def assess_optim(self, xc: np.ndarray, gamma: float) -> Any:
-            self.sp_sq = gamma
-            if cut := self.assess_feas(xc):
-                return cut, None
-            return (self.spectrum[self.kmax], (0.0, self.fmax)), self.fmax
-
-    return Oracle()
-
+# but we use the parameterized factory from multiplierless.lowpass_oracle.
 
 DEFAULTS = {
     "filter_order": 32,
@@ -404,12 +350,8 @@ def main(argv: Optional[list[str]] = None) -> int:
 
     method = spec.get("spectral_method", "fft")
     tol = spec.get("root_tolerance", 1e-8)
-    if method == "fft":
-        h = spectral_fact_fft(r)
-    else:
-        h = spectral_fact_root(r, tol)
+    h = spectral_fact_select(r, method, tol)
     csd_strings = [to_csdnnz(hi, csd_nnz) for hi in h]
-
     coefficients = []
     for i, (hi, csd_str) in enumerate(zip(h, csd_strings)):
         coefficients.append(
@@ -440,35 +382,11 @@ def main(argv: Optional[list[str]] = None) -> int:
                 raw = "0" + raw
             coeff_tuples.append((f"h{i}", raw, input_width, max_power))
 
-        if verilog_form == "transpose":
-            output["verilog"] = _generate_transpose_verilog(coeff_tuples, module_name)
-        else:
-            verilog = generate_csd_multipliers(coeff_tuples, module_name)
-            # Fix missing commas between port declarations (known csdigit issue)
-            lines = verilog.splitlines(keepends=True)
-            port_lines: list[int] = []
-            module_start = -1
-            paren_end = -1
-            for i, line in enumerate(lines):
-                if line.strip().startswith("module ") and "(" in line:
-                    module_start = i
-                if module_start >= 0 and paren_end < 0:
-                    if ");" in line:
-                        paren_end = i
-                    elif module_start != i:
-                        port_lines.append(i)
-            # Add commas to all port lines except the last
-            for idx, pi in enumerate(port_lines):
-                line = lines[pi]
-                stripped = line.rstrip()
-                code_part = stripped.split("//")[0].rstrip()
-                if not code_part.endswith(",") and idx < len(port_lines) - 1:
-                    if "//" in stripped:
-                        ci = stripped.index("//")
-                        lines[pi] = code_part + ",\n" + stripped[ci:] + "\n"
-                    else:
-                        lines[pi] = code_part + ",\n"
-            output["verilog"] = "".join(lines)
+        generator = VERILOG_GENERATORS.get(verilog_form)
+        if generator is None:
+            print(f"Unknown verilog form: {verilog_form}", file=sys.stderr)
+            return 1
+        output["verilog"] = generator(coeff_tuples, module_name)
 
     json.dump(output, sys.stdout, indent=2)
     print()

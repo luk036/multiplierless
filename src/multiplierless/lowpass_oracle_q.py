@@ -46,6 +46,9 @@ class LowpassOracleQ(OracleOptimQ[np.ndarray]):
         self.lowpass = lowpass
         self.rcsd = np.array([0])
         self.num_retries = 0
+        # Number of frequency grid rows bounds the retry attempts (each retry
+        # advances the round-robin scan by one row).
+        self.max_retries = self.lowpass.spectrum.shape[0]
 
     def assess_optim_q(
         self, r: np.ndarray, Spsq: float, retry: bool
@@ -68,5 +71,5 @@ class LowpassOracleQ(OracleOptimQ[np.ndarray]):
             (gc, hc),
             self.rcsd,
             Spsq2,
-            self.num_retries < self.lowpass.spectrum.shape[0],
+            self.num_retries < self.max_retries,
         )

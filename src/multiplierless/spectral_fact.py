@@ -1,15 +1,25 @@
 """Spectral Factorization — root-finding (default) + FFT (optimized)."""
 
+from enum import Enum
+
 import numpy as np
 from ginger.aberth import aberth_autocorr, initial_aberth_autocorr, poly_from_roots
 from ginger.rootfinding import Options
 
 __all__ = [
+    "SpectralMethod",
     "spectral_fact",
     "spectral_fact_fft",
     "spectral_fact_root",
     "inverse_spectral_fact",
 ]
+
+
+class SpectralMethod(Enum):
+    """Spectral factorization method selector (Strategy pattern)."""
+
+    FFT = "fft"
+    ROOT = "root"
 
 
 def spectral_fact_root(r: np.ndarray, tolerance: float = 1e-8) -> np.ndarray:
@@ -67,6 +77,25 @@ def spectral_fact(r: np.ndarray) -> np.ndarray:
     Returns:
         Minimum-phase impulse response coefficients.
     """
+    return spectral_fact_fft(r)
+
+
+def spectral_fact_select(
+    r: np.ndarray, method: str | SpectralMethod, tolerance: float = 1e-8
+) -> np.ndarray:
+    """Spectral factorization with explicit method selection.
+
+    Args:
+        r: Auto-correlation coefficients.
+        method: Method name (``"fft"``/``"root"``) or :class:`SpectralMethod`.
+        tolerance: Root-solver tolerance (used by the ``root`` method).
+
+    Returns:
+        Minimum-phase impulse response coefficients.
+    """
+    m = SpectralMethod(method) if isinstance(method, str) else method
+    if m is SpectralMethod.ROOT:
+        return spectral_fact_root(r, tolerance)
     return spectral_fact_fft(r)
 
 
