@@ -6,7 +6,7 @@ multiplierless CLI. It is the parameterized equivalent of
 ``discretization_factor`` so the frequency grid density can be tuned.
 
 The constraint scans share a common Template-Method skeleton
-(:func:`_scan_constraints`) and reuse :class:`multiplierless.round_robin.RoundRobin`
+(:func:`_scan_constraints`) and reuse :class:`ellalgo.round_robin.RoundRobin`
 for the cyclic row iteration, mirroring
 ``multiplierless/source/lowpass_oracle.cpp``.
 """
@@ -16,7 +16,7 @@ from typing import Any, Callable, Optional, Tuple
 
 import numpy as np
 
-from multiplierless.round_robin import RoundRobin
+from ellalgo.round_robin import RoundRobin
 
 Arr = np.ndarray
 ParallelCut = Tuple[Arr, Any]

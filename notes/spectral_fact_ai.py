@@ -1,13 +1,6 @@
-"""Spectral factorization of an auto-correlation sequence via FFT + Hilbert transform."""
-
-
-
-
-
-
-
-
-
+"""
+Spectral factorization of an auto-correlation sequence via FFT + Hilbert transform.
+"""
 
 import matplotlib.pyplot as plt
 import numpy as np
