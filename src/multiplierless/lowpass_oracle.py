@@ -5,48 +5,45 @@ multiplierless CLI. It is the parameterized equivalent of
 ``ellalgo.oracles.lowpass_oracle.LowpassOracle``, additionally taking a
 ``discretization_factor`` so the frequency grid density can be tuned.
 
-The constraint scans share a common Template-Method skeleton
-(:func:`_scan_constraints`) and reuse :class:`ellalgo.round_robin.RoundRobin`
-for the cyclic row iteration, mirroring
-``multiplierless/source/lowpass_oracle.cpp``.
+Constraint evaluation is vectorized: the squared-magnitude response of every
+grid row is computed with a single matrix-vector product and the constraints
+are tested with boolean masks, preserving the original round-robin cut
+selection.
 """
 
 from math import floor
-from typing import Any, Callable, Optional, Tuple
+from typing import Any, Optional, Tuple
 
 import numpy as np
-
 from ellalgo.round_robin import RoundRobin
 
 Arr = np.ndarray
 ParallelCut = Tuple[Arr, Any]
-Check = Callable[[int, Arr, float], Optional[ParallelCut]]
 
 
-def _scan_constraints(
-    rr: RoundRobin, count: int, x: Arr, spectrum: Arr, check: Check
-) -> Optional[ParallelCut]:
-    """Template-Method skeleton: scan ``count`` rows of ``spectrum`` in
-    round-robin order and return the first violating cut reported by
-    ``check``, or None if none of the rows violate.
+def _peek(rr: RoundRobin, lo: int, hi: int) -> int:
+    """Return the index the next :meth:`RoundRobin.next` call would yield.
 
-    Args:
-        rr: Round-robin row iterator.
-        count: Number of rows to scan.
-        x: The variable vector (autocorrelation coefficients).
-        spectrum: The pre-computed cosine spectrum matrix.
-        check: Callback ``check(row, col_k, v) -> Optional[ParallelCut]``.
-
-    Returns:
-        The first violating cut, or None.
+    Reads the cursor without advancing it. ``RoundRobin`` exposes no public
+    getter, so its cursor slot is read directly.
     """
-    for _ in range(count):
-        k = rr.next()
-        col_k = spectrum[k]
-        v = col_k.dot(x)
-        if cut := check(k, col_k, v):
-            return cut
-    return None
+    nxt = rr._cur + 1
+    return lo if nxt >= hi else nxt
+
+
+def _first_true_cyclic(mask: Arr, start: int, lo: int, size: int) -> int:
+    """First ``True`` entry of ``mask`` scanning cyclically from ``start``.
+
+    ``mask`` covers the half-open segment ``[lo, lo + size)``. Returns the
+    absolute row index, or ``-1`` when no entry is ``True``.
+    """
+    if not mask.any():
+        return -1
+    off = start - lo
+    tail = mask[off:]
+    if tail.any():
+        return lo + off + int(np.argmax(tail))
+    return lo + int(np.argmax(mask[:off]))
 
 
 class LowpassOracle:
@@ -116,54 +113,64 @@ class LowpassOracle:
             A parallel cut (gradient, objective) when a constraint is
             violated, or None when the point is feasible.
         """
-        mdim, ndim = self.spectrum.shape
+        mdim = self._mdim
+        nwpass = self.nwpass
+        nwstop = self.nwstop
+
+        # Single BLAS matvec: R(omega) for every grid row at once.
+        v = self.spectrum @ x
 
         # Passband constraints: lp_sq <= v <= up_sq
-        if cut := _scan_constraints(
-            self.idx1, self.nwpass, x, self.spectrum, self._check_passband
-        ):
-            return cut
+        if nwpass > 0:
+            seg = v[:nwpass]
+            mask = (seg > self.up_sq) | (seg < self.lp_sq)
+            k = _first_true_cyclic(mask, _peek(self.idx1, 0, nwpass), 0, nwpass)
+            if k >= 0:
+                self.idx1._cur = k
+                vk = v[k]
+                if vk > self.up_sq:
+                    return self.spectrum[k], (vk - self.up_sq, vk - self.lp_sq)
+                return -self.spectrum[k], (self.lp_sq - vk, self.up_sq - vk)
 
         self.fmax = float("-inf")
         self.kmax = 0
         # Stopband constraint: 0 <= v <= sp_sq, tracking the maximum
-        if cut := _scan_constraints(
-            self.idx3, mdim - self.nwstop, x, self.spectrum, self._check_stopband
-        ):
-            return cut
+        if mdim > nwstop:
+            size = mdim - nwstop
+            seg = v[nwstop:mdim]
+            mask = (seg > self.sp_sq) | (seg < 0.0)
+            start = _peek(self.idx3, nwstop, mdim)
+            k = _first_true_cyclic(mask, start, nwstop, size)
+            if k >= 0:
+                self.idx3._cur = k
+                vk = v[k]
+                if vk > self.sp_sq:
+                    return self.spectrum[k], (vk - self.sp_sq, vk)
+                return -self.spectrum[k], (-vk, self.sp_sq - vk)
+            # No violation: record the maximum response. The value is
+            # order-independent, but keep the original cyclic-order
+            # tie-breaking for the row index used as the gradient.
+            self.fmax = float(seg.max())
+            cand = np.flatnonzero(seg == self.fmax)
+            if cand.size:
+                off = start - nwstop
+                after = cand[cand >= off]
+                self.kmax = nwstop + int(after[0] if after.size else cand[0])
 
         # Transition band: only non-negativity
-        if cut := _scan_constraints(
-            self.idx2, self.nwstop - self.nwpass, x, self.spectrum, self._check_nonneg
-        ):
-            return cut
+        if nwstop > nwpass:
+            size = nwstop - nwpass
+            seg = v[nwpass:nwstop]
+            mask = seg < 0.0
+            k = _first_true_cyclic(mask, _peek(self.idx2, nwpass, nwstop), nwpass, size)
+            if k >= 0:
+                self.idx2._cur = k
+                return -self.spectrum[k], -v[k]
 
         # First coefficient must be non-negative
         if x[0] < 0:
             self._grad_buf[0] = -1.0
             return self._grad_buf.copy(), -x[0]
-        return None
-
-    def _check_passband(self, k: int, col_k: Arr, v: float) -> Optional[ParallelCut]:
-        if v > self.up_sq:
-            return col_k, (v - self.up_sq, v - self.lp_sq)
-        if v < self.lp_sq:
-            return -col_k, (-v + self.lp_sq, -v + self.up_sq)
-        return None
-
-    def _check_stopband(self, k: int, col_k: Arr, v: float) -> Optional[ParallelCut]:
-        if v > self.sp_sq:
-            return col_k, (v - self.sp_sq, v)
-        if v < 0:
-            return -col_k, (-v, -v + self.sp_sq)
-        if v > self.fmax:
-            self.fmax = v
-            self.kmax = k
-        return None
-
-    def _check_nonneg(self, k: int, col_k: Arr, v: float) -> Optional[ParallelCut]:
-        if v < 0:
-            return -col_k, -v
         return None
 
     def assess_optim(
