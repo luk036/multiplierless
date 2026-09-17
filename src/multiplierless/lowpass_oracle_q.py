@@ -45,10 +45,18 @@ class LowpassOracleQ(OracleOptimQ[np.ndarray]):
         self.nnz = nnz
         self.lowpass = lowpass
         self.rcsd = np.array([0])
+        self._rcsd_valid = False
         self.num_retries = 0
         # Number of frequency grid rows bounds the retry attempts (each retry
         # advances the round-robin scan by one row).
         self.max_retries = self.lowpass.spectrum.shape[0]
+
+    def _csd_point(self, r: np.ndarray) -> np.ndarray:
+        """Auto-correlation of the CSD-quantized spectral factor of ``r``."""
+        r_array = np.array([r]) if isinstance(r, float) else r
+        h = spectral_fact(r_array)
+        hcsd = np.array([csd_quantize(float(hi), self.nnz) for hi in h])
+        return inverse_spectral_fact(hcsd)
 
     def assess_optim_q(
         self, r: np.ndarray, Spsq: float, retry: bool
@@ -57,13 +65,15 @@ class LowpassOracleQ(OracleOptimQ[np.ndarray]):
             self.lowpass.spsq = Spsq
             if cut := self.lowpass.assess_feas(r):
                 return cut, r, None, True
-            r_array = np.array([r]) if isinstance(r, float) else r
-            h = spectral_fact(r_array)
-            hcsd = np.array([csd_quantize(float(hi), self.nnz) for hi in h])
-            self.rcsd = inverse_spectral_fact(hcsd)
+            self.rcsd = self._csd_point(r)
+            self._rcsd_valid = True
             self.num_retries = 0
         else:
             self.num_retries += 1
+            if not self._rcsd_valid:
+                # Feasibility-cut return skipped quantization; compute it now.
+                self.rcsd = self._csd_point(r)
+                self._rcsd_valid = True
 
         (gc, hc), Spsq2 = self.lowpass.assess_optim(self.rcsd, Spsq)
         hc += gc.dot(self.rcsd - r)
