@@ -21,16 +21,6 @@ Arr = np.ndarray
 ParallelCut = Tuple[Arr, Any]
 
 
-def _peek(rr: RoundRobin, lo: int, hi: int) -> int:
-    """Return the index the next :meth:`RoundRobin.next` call would yield.
-
-    Reads the cursor without advancing it. ``RoundRobin`` exposes no public
-    getter, so its cursor slot is read directly.
-    """
-    nxt = rr._cur + 1
-    return lo if nxt >= hi else nxt
-
-
 def _first_true_cyclic(mask: Arr, start: int, lo: int, size: int) -> int:
     """First ``True`` entry of ``mask`` scanning cyclically from ``start``.
 
@@ -78,8 +68,8 @@ class LowpassOracle:
         temp = 2 * np.cos(np.outer(w, np.arange(1, N)))
         self.spectrum = np.concatenate((np.ones((mdim, 1)), temp), axis=1)
 
-        self.nwpass = floor(wpass * np.pi * (mdim - 1) / np.pi) + 1
-        self.nwstop = floor(wstop * np.pi * (mdim - 1) / np.pi) + 1
+        self.nwpass = floor(wpass * (mdim - 1)) + 1
+        self.nwstop = floor(wstop * (mdim - 1)) + 1
 
         delta1 = 20 * np.log10(1 + delta0_wpass)
         delta2 = 20 * np.log10(delta0_wstop)
@@ -124,9 +114,9 @@ class LowpassOracle:
         if nwpass > 0:
             seg = v[:nwpass]
             mask = (seg > self.up_sq) | (seg < self.lp_sq)
-            k = _first_true_cyclic(mask, _peek(self.idx1, 0, nwpass), 0, nwpass)
+            k = _first_true_cyclic(mask, self.idx1.peek_next(), 0, nwpass)
             if k >= 0:
-                self.idx1._cur = k
+                self.idx1.seek(k)
                 vk = v[k]
                 if vk > self.up_sq:
                     return self.spectrum[k], (vk - self.up_sq, vk - self.lp_sq)
@@ -139,10 +129,10 @@ class LowpassOracle:
             size = mdim - nwstop
             seg = v[nwstop:mdim]
             mask = (seg > self.sp_sq) | (seg < 0.0)
-            start = _peek(self.idx3, nwstop, mdim)
+            start = self.idx3.peek_next()
             k = _first_true_cyclic(mask, start, nwstop, size)
             if k >= 0:
-                self.idx3._cur = k
+                self.idx3.seek(k)
                 vk = v[k]
                 if vk > self.sp_sq:
                     return self.spectrum[k], (vk - self.sp_sq, vk)
@@ -162,9 +152,9 @@ class LowpassOracle:
             size = nwstop - nwpass
             seg = v[nwpass:nwstop]
             mask = seg < 0.0
-            k = _first_true_cyclic(mask, _peek(self.idx2, nwpass, nwstop), nwpass, size)
+            k = _first_true_cyclic(mask, self.idx2.peek_next(), nwpass, size)
             if k >= 0:
-                self.idx2._cur = k
+                self.idx2.seek(k)
                 return -self.spectrum[k], -v[k]
 
         # First coefficient must be non-negative

@@ -29,9 +29,32 @@ def csd_to_int(csd_str: str) -> int:
     return val
 
 
+def align_csd(csd_list: list[str]) -> list[str]:
+    """Right-align fractional CSD digits to a shared fixed-point scale."""
+    split = []
+    for csd in csd_list:
+        int_part, _, frac_part = csd.partition(".")
+        split.append((int_part, frac_part))
+    int_width = max(len(int_part) for int_part, _ in split)
+    frac_width = max(len(frac_part) for _, frac_part in split)
+    return [
+        int_part.rjust(int_width, "0") + frac_part.ljust(frac_width, "0")
+        for int_part, frac_part in split
+    ]
+
+
 def load_json(path: str | Path) -> dict:
     with open(path) as f:
         return json.load(f)
+
+
+def parse_module_name(verilog: str) -> str:
+    """Extract the module name from a Verilog source."""
+    for line in verilog.splitlines():
+        match = re.search(r"module\s+(\w+)", line)
+        if match:
+            return match.group(1)
+    raise ValueError("Could not parse module name from Verilog")
 
 
 def parse_widths(verilog: str) -> tuple[int, int]:
@@ -55,16 +78,10 @@ def gen_tb_transpose(data: dict) -> str:
     N = len(coeffs)
     verilog = data["verilog"]
     input_width, output_width = parse_widths(verilog)
+    module_name = parse_module_name(verilog)
 
     # Build expected values from CSD strings
-    csd_raw = [c["csd"] for c in coeffs]
-    max_len = max(len(s) for s in csd_raw)
-    expected = []
-    for s in csd_raw:
-        raw = s.replace(".", "")
-        while len(raw) < max_len:
-            raw = "0" + raw
-        expected.append(csd_to_int(raw))
+    expected = [csd_to_int(raw) for raw in align_csd([c["csd"] for c in coeffs])]
 
     # Generate per-cycle expected value as case statement
     expected_case = "\n".join(
@@ -84,7 +101,7 @@ module tb_fir_filter_transpose;
     reg signed [{input_width - 1}:0] x;
     wire signed [{output_width - 1}:0] y;
 
-    fir_filter uut (
+    {module_name} uut (
         .clk(clk),
         .rst_n(rst_n),
         .x(x),
@@ -161,16 +178,10 @@ def gen_tb_direct(data: dict) -> str:
     N = len(coeffs)
     verilog = data["verilog"]
     input_width, _ = parse_widths(verilog)
+    module_name = parse_module_name(verilog)
 
     # Build expected values from CSD strings
-    csd_raw = [c["csd"] for c in coeffs]
-    max_len = max(len(s) for s in csd_raw)
-    expected = []
-    for s in csd_raw:
-        raw = s.replace(".", "")
-        while len(raw) < max_len:
-            raw = "0" + raw
-        expected.append(csd_to_int(raw))
+    expected = [csd_to_int(raw) for raw in align_csd([c["csd"] for c in coeffs])]
 
     # Collect output port names and widths
     port_widths = []
@@ -213,13 +224,6 @@ def gen_tb_direct(data: dict) -> str:
 
     tests = "\n".join(test_blocks)
 
-    mod_name = None
-    for line in verilog.splitlines():
-        m = re.search(r"module\s+(\w+)", line)
-        if m:
-            mod_name = m.group(1)
-            break
-
     tb = f"""// Auto-generated test bench for direct-form FIR multiplier bank
 // N = {N}, input_width = {input_width}
 
@@ -230,7 +234,7 @@ module tb_fir_filter_direct;
     reg signed [{input_width - 1}:0] x;
 {port_decls}
 
-    {mod_name} uut (
+    {module_name} uut (
         .x(x),
 {port_connects}
     );

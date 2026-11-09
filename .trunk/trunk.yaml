@@ -3,14 +3,14 @@ cli:
   version: 1.5.0
 lint:
   enabled:
-    - black@23.1.0
+    - black@24.3.0
     - git-diff-check
     - taplo@0.7.0
     - actionlint@1.6.23
-    - black-py@23.1.0
-    - flake8@6.0.0
+    - black-py@24.3.0
+    - flake8@7.0.0
     - gitleaks@8.15.3
-    - isort@5.12.0
+    - isort@5.13.2
     - markdownlint@0.33.0
     - prettier@2.8.4
 runtimes:

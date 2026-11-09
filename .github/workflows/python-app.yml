@@ -1,60 +1,52 @@
-# This workflow will install Python dependencies, run tests and lint with multiple Python versions
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
-
-name: Python application (new)
+name: Python application
 
 on:
   push:
-    branches: [ main, dev ]
+    branches: [main, dev]
   pull_request:
-    branches: [ main, dev ]
+    branches: [main, dev]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
 
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install Icarus Verilog
+        run: sudo apt-get update && sudo apt-get install -y iverilog
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install setuptools flake8 pytest pytest-cov pytest-benchmark hypothesis
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          pip install git+https://github.com/luk036/csdigit.git
-          pip install git+https://github.com/luk036/ginger.git
-          pip install git+https://github.com/luk036/ellalgo.git
-          python setup.py develop
+          pip install -e ".[testing]"
+          pip install bandit
 
-      - name: Lint with flake8
+      - name: Lint
         run: |
-          # stop the build if there are Python syntax errors or undefined names
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+          flake8 src tests tools
+          black --check src tests tools
+          isort --check-only src tests tools
+          mypy src tools
 
       - name: Security scan with bandit
-        run: |
-          pip install bandit
-          bandit -r src/ -f screen -v
+        run: bandit -r src/ -q
 
       - name: Test with pytest
-        run: |
-          pytest --cov=src/ --cov-report=term-missing
+        run: pytest
 
-      - name: Codecov
-        # You may pin to the exact commit or the version.
-        uses: codecov/codecov-action@v3
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
         with:
-          # Repository upload token - get it from codecov.io. Required only for private repositories
           token: ${{ secrets.CODECOV_TOKEN }}
-          # Comma-separated list of files to upload
           fail_ci_if_error: false
           flags: unittests
-          name: codecov-umbrella

@@ -7,6 +7,7 @@
     "filter_order": { "type": "integer" },
     "csd_nnz": { "type": "integer" },
     "iterations": { "type": "integer" },
+    "spectral_method": { "type": "string", "enum": ["fft", "root"] },
     "coefficients": {
       "type": "array",
       "items": {

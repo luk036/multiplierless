@@ -9,7 +9,7 @@
 - [`test.txt`](test.txt)
   Requirements for running test suite
 - [`doc.txt`](doc.txt)
-  Requirements for building the documentation (see `../doc/`)
+  Requirements for building the documentation (see `../docs/`)
 
 ## Examples
 

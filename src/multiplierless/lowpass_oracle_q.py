@@ -1,35 +1,66 @@
 """Lowpass oracle with CSD quantization for multiplierless FIR filter design."""
 
 from math import ceil, fabs, ldexp, log2
-from typing import Any, Optional, Tuple
+from typing import Optional, Protocol, Tuple
 
 import numpy as np
 from ellalgo.ell_typing import OracleOptimQ
 
+from .lowpass_oracle import ParallelCut
 from .spectral_fact import inverse_spectral_fact, spectral_fact
 
-__all__ = ["LowpassOracleQ", "csd_quantize"]
+__all__ = [
+    "LowpassOracleLike",
+    "LowpassOracleQ",
+    "csd_quantize",
+    "csd_quantize_parts",
+]
+
+
+def csd_quantize_parts(num: float, nnz: int) -> tuple[float, list[tuple[int, int]]]:
+    """Direct double → (double, CSD digits) quantization.
+
+    Matches C++ ``csd_quantize()`` — uses
+    ``ldexp(1.0, ceil(log2(|num| · 1.5)) - 1)``
+    and iteratively subtracts powers of two up to *nnz* non-zero digits.
+
+    Returns the quantized value together with the chosen ``(exponent, sign)``
+    digits.  The digits sum exactly to the value, so callers can render them
+    as a CSD string without re-quantizing (and without the two disagreeing).
+    """
+    if num == 0.0 or nnz == 0:
+        return 0.0, []
+    result = 0.0
+    parts: list[tuple[int, int]] = []
+    exp = int(ceil(log2(fabs(num) * 1.5))) - 1
+    while nnz > 0 and fabs(num) > 1e-100:
+        bit_val = ldexp(1.0, exp)
+        if fabs(1.5 * num) > bit_val:
+            sgn = 1 if num > 0 else -1
+            result += sgn * bit_val
+            parts.append((exp, sgn))
+            num -= sgn * bit_val
+            nnz -= 1
+        exp -= 1
+    return result, parts
 
 
 def csd_quantize(num: float, nnz: int) -> float:
-    """Direct double → double CSD quantization (no string round-trip).
+    """Direct double → double CSD quantization (no string round-trip)."""
+    return csd_quantize_parts(num, nnz)[0]
 
-    Matches C++ `csd_quantize()` — uses
-    ``ldexp(1.0, ceil(log2(|num| · 1.5)) - 1)``
-    and iteratively subtracts powers of two up to *nnz* non-zero digits.
-    """
-    if num == 0.0 or nnz == 0:
-        return 0.0
-    result = 0.0
-    bit_val = ldexp(1.0, int(ceil(log2(fabs(num) * 1.5))) - 1)
-    while nnz > 0 and fabs(num) > 1e-100:
-        if fabs(1.5 * num) > bit_val:
-            sgn = 1.0 if num > 0 else -1.0
-            result += sgn * bit_val
-            num -= sgn * bit_val
-            nnz -= 1
-        bit_val *= 0.5
-    return result
+
+class LowpassOracleLike(Protocol):
+    """Structural interface required from the wrapped lowpass oracle."""
+
+    spectrum: np.ndarray
+    sp_sq: float
+
+    def assess_feas(self, x: np.ndarray) -> Optional[ParallelCut]: ...
+
+    def assess_optim(
+        self, xc: np.ndarray, gamma: float
+    ) -> Tuple[ParallelCut, Optional[float]]: ...
 
 
 class LowpassOracleQ(OracleOptimQ[np.ndarray]):
@@ -41,7 +72,7 @@ class LowpassOracleQ(OracleOptimQ[np.ndarray]):
     ellipsoid method optimization to iteratively refine filter designs.
     """
 
-    def __init__(self, nnz: int, lowpass: Any) -> None:
+    def __init__(self, nnz: int, lowpass: LowpassOracleLike) -> None:
         self.nnz = nnz
         self.lowpass = lowpass
         self.rcsd = np.array([0])
@@ -62,7 +93,6 @@ class LowpassOracleQ(OracleOptimQ[np.ndarray]):
         self, r: np.ndarray, Spsq: float, retry: bool
     ) -> Tuple[Tuple[np.ndarray, float], np.ndarray, Optional[float], bool]:
         if not retry:
-            self.lowpass.spsq = Spsq
             if cut := self.lowpass.assess_feas(r):
                 return cut, r, None, True
             self.rcsd = self._csd_point(r)

@@ -3,62 +3,64 @@ module fir_filter (
     input clk,
     input rst_n,
     input signed [15:0] x,
-    output signed [37:0] y
+    output signed [39:0] y
 );
 
     // Shifted versions of input
-    wire signed [37:0] x_shift15 = x <<< 15;
-    wire signed [37:0] x_shift14 = x <<< 14;
-    wire signed [37:0] x_shift13 = x <<< 13;
-    wire signed [37:0] x_shift12 = x <<< 12;
-    wire signed [37:0] x_shift11 = x <<< 11;
-    wire signed [37:0] x_shift10 = x <<< 10;
-    wire signed [37:0] x_shift9 = x <<< 9;
-    wire signed [37:0] x_shift8 = x <<< 8;
-    wire signed [37:0] x_shift7 = x <<< 7;
-    wire signed [37:0] x_shift6 = x <<< 6;
-    wire signed [37:0] x_shift5 = x <<< 5;
-    wire signed [37:0] x_shift4 = x <<< 4;
-    wire signed [37:0] x_shift3 = x <<< 3;
-    wire signed [37:0] x_shift2 = x <<< 2;
-    wire signed [37:0] x_shift0 = x <<< 0;
+    wire signed [39:0] x_shift16 = x <<< 16;
+    wire signed [39:0] x_shift15 = x <<< 15;
+    wire signed [39:0] x_shift14 = x <<< 14;
+    wire signed [39:0] x_shift13 = x <<< 13;
+    wire signed [39:0] x_shift12 = x <<< 12;
+    wire signed [39:0] x_shift11 = x <<< 11;
+    wire signed [39:0] x_shift10 = x <<< 10;
+    wire signed [39:0] x_shift9 = x <<< 9;
+    wire signed [39:0] x_shift8 = x <<< 8;
+    wire signed [39:0] x_shift7 = x <<< 7;
+    wire signed [39:0] x_shift6 = x <<< 6;
+    wire signed [39:0] x_shift5 = x <<< 5;
+    wire signed [39:0] x_shift4 = x <<< 4;
+    wire signed [39:0] x_shift3 = x <<< 3;
+    wire signed [39:0] x_shift2 = x <<< 2;
+    wire signed [39:0] x_shift1 = x <<< 1;
+    wire signed [39:0] x_shift0 = x <<< 0;
 
-    // Cross-CSE: shared pattern "0+0-"
-    wire signed [37:0] _cse_0 = x_shift8 - x_shift6;
+    // Cross-CSE: shared pattern "0-0-"
+    wire signed [39:0] _cse_0 = -x_shift14 - x_shift12;
 
     // Transpose-form pipeline registers
-    reg signed [37:0] sum0;
-    reg signed [37:0] sum1;
-    reg signed [37:0] sum2;
-    reg signed [37:0] sum3;
-    reg signed [37:0] sum4;
-    reg signed [37:0] sum5;
-    reg signed [37:0] sum6;
-    reg signed [37:0] sum7;
-    reg signed [37:0] sum8;
-    reg signed [37:0] sum9;
-    reg signed [37:0] sum10;
-    reg signed [37:0] sum11;
-    reg signed [37:0] sum12;
-    reg signed [37:0] sum13;
-    reg signed [37:0] sum14;
-    reg signed [37:0] sum15;
-    reg signed [37:0] sum16;
-    reg signed [37:0] sum17;
-    reg signed [37:0] sum18;
-    reg signed [37:0] sum19;
-    reg signed [37:0] sum20;
-    reg signed [37:0] sum21;
-    reg signed [37:0] sum22;
-    reg signed [37:0] sum23;
-    reg signed [37:0] sum24;
-    reg signed [37:0] sum25;
-    reg signed [37:0] sum26;
-    reg signed [37:0] sum27;
-    reg signed [37:0] sum28;
-    reg signed [37:0] sum29;
-    reg signed [37:0] sum30;
-    reg signed [37:0] sum31;
+    reg signed [39:0] sum0;
+    reg signed [39:0] sum1;
+    reg signed [39:0] sum2;
+    reg signed [39:0] sum3;
+    reg signed [39:0] sum4;
+    reg signed [39:0] sum5;
+    reg signed [39:0] sum6;
+    reg signed [39:0] sum7;
+    reg signed [39:0] sum8;
+    reg signed [39:0] sum9;
+    reg signed [39:0] sum10;
+    reg signed [39:0] sum11;
+    reg signed [39:0] sum12;
+    reg signed [39:0] sum13;
+    reg signed [39:0] sum14;
+    reg signed [39:0] sum15;
+    reg signed [39:0] sum16;
+    reg signed [39:0] sum17;
+    reg signed [39:0] sum18;
+    reg signed [39:0] sum19;
+    reg signed [39:0] sum20;
+    reg signed [39:0] sum21;
+    reg signed [39:0] sum22;
+    reg signed [39:0] sum23;
+    reg signed [39:0] sum24;
+    reg signed [39:0] sum25;
+    reg signed [39:0] sum26;
+    reg signed [39:0] sum27;
+    reg signed [39:0] sum28;
+    reg signed [39:0] sum29;
+    reg signed [39:0] sum30;
+    reg signed [39:0] sum31;
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -95,38 +97,38 @@ module fir_filter (
             sum30 <= 0;
             sum31 <= 0;
         end else begin
-            sum0 <= (_cse_0 >>> 1) + x_shift3 + x_shift0;
-            sum1 <= sum0 + x_shift6 + x_shift4 + (_cse_0 >>> 6);
-            sum2 <= sum1 + x_shift11 + x_shift5 + x_shift3 - x_shift0;
-            sum3 <= sum2 + (_cse_0 >>> 2) + -x_shift2 + x_shift0;
-            sum4 <= sum3 + x_shift7 - x_shift4 - x_shift2 + x_shift0;
-            sum5 <= sum4 + x_shift8 - x_shift5 + x_shift3 + x_shift0;
-            sum6 <= sum5 + x_shift8 - x_shift5 - x_shift3 + x_shift0;
-            sum7 <= sum6 + x_shift10 + x_shift8 + x_shift3 - x_shift0;
-            sum8 <= sum7 + x_shift14 - x_shift6 + x_shift4 + x_shift0;
-            sum9 <= sum8 + -x_shift11 + x_shift6 - x_shift2 - x_shift0;
-            sum10 <= sum9 + -x_shift6 + (_cse_0 >>> 4) + x_shift0;
-            sum11 <= sum10 + -x_shift9 - x_shift7 - x_shift5 + x_shift0;
-            sum12 <= sum11 + -x_shift8 + x_shift5 + x_shift3 - x_shift0;
-            sum13 <= sum12 + -x_shift13 + x_shift9 + x_shift6 + x_shift0;
-            sum14 <= sum13 + -x_shift10 + x_shift7 + x_shift3 + x_shift0;
-            sum15 <= sum14 + -x_shift9 - x_shift7 - x_shift4 - x_shift0;
-            sum16 <= sum15 + -x_shift8 - x_shift5 + (_cse_0 >>> 6);
-            sum17 <= sum16 + (_cse_0 >>> 2) + (_cse_0 >>> 6);
-            sum18 <= sum17 + (_cse_0 >>> 1) + -x_shift2 + x_shift0;
-            sum19 <= sum18 + x_shift12 + x_shift10 - x_shift4 + x_shift0;
-            sum20 <= sum19 + x_shift8 - x_shift5 - x_shift3 + x_shift0;
-            sum21 <= sum20 + x_shift15 + x_shift8 + x_shift6 - x_shift0;
-            sum22 <= sum21 + x_shift11 + _cse_0 + x_shift0;
-            sum23 <= sum22 + x_shift8 + (_cse_0 >>> 3) + x_shift0;
-            sum24 <= sum23 + x_shift10 + (_cse_0 >>> 3) + x_shift0;
-            sum25 <= sum24 + x_shift8 - x_shift5 + x_shift2 + x_shift0;
-            sum26 <= sum25 + (_cse_0 >>> 1) + -x_shift2 + x_shift0;
-            sum27 <= sum26 + x_shift9 + x_shift6 - x_shift3 - x_shift0;
-            sum28 <= sum27 + _cse_0 + x_shift2 + x_shift0;
-            sum29 <= sum28 + x_shift10 - x_shift5 + x_shift3 - x_shift0;
-            sum30 <= sum29 + x_shift8 + x_shift4 + (_cse_0 >>> 6);
-            sum31 <= sum30 + x_shift11 + x_shift8 - x_shift4 - x_shift0;
+            sum0 <= x_shift12 - x_shift10 - x_shift7 + x_shift5;
+            sum1 <= sum0 + x_shift12 + x_shift10 + x_shift6 - x_shift4;
+            sum2 <= sum1 + x_shift13 - x_shift7 + x_shift5 + x_shift3;
+            sum3 <= sum2 + x_shift14 + (_cse_0 >>> 2) + -x_shift5;
+            sum4 <= sum3 + x_shift14 + (_cse_0 >>> 3) + -x_shift7;
+            sum5 <= sum4 + x_shift14 - x_shift11 + x_shift9 + x_shift7;
+            sum6 <= sum5 + x_shift14 + (_cse_0 >>> 3) + x_shift7;
+            sum7 <= sum6 + x_shift13 + x_shift11 + x_shift9 + x_shift4;
+            sum8 <= sum7 + x_shift12 + x_shift9 + x_shift7 + x_shift4;
+            sum9 <= sum8 + -x_shift12 + x_shift10 + (_cse_0 >>> 7);
+            sum10 <= sum9 + -x_shift14 + x_shift12 + x_shift8 - x_shift6;
+            sum11 <= sum10 + _cse_0 + (_cse_0 >>> 7);
+            sum12 <= sum11 + -x_shift15 + x_shift13 + (_cse_0 >>> 3);
+            sum13 <= sum12 + -x_shift15 + x_shift11 + x_shift9 + x_shift6;
+            sum14 <= sum13 + -x_shift15 + x_shift12 + x_shift8 + x_shift4;
+            sum15 <= sum14 + _cse_0 + -x_shift10 - x_shift7;
+            sum16 <= sum15 + (_cse_0 >>> 1) + x_shift8 + x_shift6;
+            sum17 <= sum16 + x_shift12 + x_shift10 + x_shift8 + x_shift3;
+            sum18 <= sum17 + x_shift15 + (_cse_0 >>> 1) + -x_shift3;
+            sum19 <= sum18 + x_shift15 + x_shift13 - x_shift10 - x_shift7;
+            sum20 <= sum19 + x_shift16 + (_cse_0 >>> 1) + -x_shift9;
+            sum21 <= sum20 + x_shift16 + x_shift7 - x_shift2 + x_shift0;
+            sum22 <= sum21 + x_shift16 + x_shift13 - x_shift11 - x_shift2;
+            sum23 <= sum22 + x_shift16 + x_shift13 - x_shift11 + x_shift9;
+            sum24 <= sum23 + x_shift16 + x_shift11 + x_shift8 + x_shift5;
+            sum25 <= sum24 + x_shift16 - x_shift13 + x_shift11 + x_shift8;
+            sum26 <= sum25 + x_shift16 - x_shift14 - x_shift8 - x_shift2;
+            sum27 <= sum26 + x_shift15 + x_shift12 + x_shift9 - x_shift7;
+            sum28 <= sum27 + x_shift15 - x_shift13 + x_shift11 - x_shift9;
+            sum29 <= sum28 + x_shift14 + x_shift8 + x_shift5 - x_shift3;
+            sum30 <= sum29 + x_shift13 + x_shift10 + x_shift4 - x_shift1;
+            sum31 <= sum30 + x_shift12 + x_shift10 - x_shift6 - x_shift2;
         end
     end
 

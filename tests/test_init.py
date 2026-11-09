@@ -34,3 +34,11 @@ def test_version_is_string() -> None:
     from multiplierless import __version__
 
     assert isinstance(__version__, str)
+
+
+def test_public_api_exports() -> None:
+    import multiplierless
+
+    for name in multiplierless.__all__:
+        assert hasattr(multiplierless, name)
+    assert callable(multiplierless.spectral_fact)

@@ -1,16 +1,11 @@
 # multiplierless
 
-Add a short description here!
+Multiplierless (Canonical Signed Digit) FIR filter design in Python.
 
-## Note
-
-> This is the main page of your project's [Sphinx] documentation. It is
-> formatted in [Markdown]. Add additional pages by creating md-files in
-> `docs` or rst-files (formatted in [reStructuredText]) and adding links to
-> them in the `Contents` section below.
->
-> Please check [Sphinx] and [MyST] for more information
-> about how to document your project and how to configure your preferences.
+The package combines spectral factorization with an ellipsoid-method optimizer
+and emits CSD-quantized coefficients plus synthesizable Verilog. It is an
+intermediate step in an iterative filter-design loop rather than a final
+standalone design tool.
 
 ## Contents
 
@@ -30,8 +25,3 @@ Module Reference <api/modules>
 - {ref}`genindex`
 - {ref}`modindex`
 - {ref}`search`
-
-[Sphinx]: http://www.sphinx-doc.org/
-[Markdown]: https://daringfireball.net/projects/markdown/
-[reStructuredText]: http://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html
-[MyST]: https://myst-parser.readthedocs.io/en/latest/

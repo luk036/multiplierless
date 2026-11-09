@@ -54,29 +54,41 @@ def build_and_run(
     env["COCOTB_TEST_MODULES"] = test_module
     env["COEFF_JSON"] = str(PROJECT / coeff_json)
     env["PYTHONPATH"] = str(PROJECT / "sim") + os.pathsep + env.get("PYTHONPATH", "")
-    # Point cocotb to the Python DLL and interpreter on Windows
-    conda_env = Path(r"D:\scoop\apps\miniconda3\current\envs\pyflow")
-    py_dll = conda_env / "python314.dll"
-    if py_dll.is_file():
-        env["LIBPYTHON_LOC"] = str(py_dll)
-    py_exe = conda_env / "python.exe"
-    if py_exe.is_file():
-        env["PYGPI_PYTHON_BIN"] = str(py_exe)
+    if os.name == "nt":
+        py_dll = Path(sys.base_prefix) / (
+            f"python{sys.version_info.major}{sys.version_info.minor}.dll"
+        )
+        if py_dll.is_file():
+            env["LIBPYTHON_LOC"] = str(py_dll)
+        env["PYGPI_PYTHON_BIN"] = sys.executable
 
-    cmd_run = [
-        "vvp",
-        "-M",
-        str(COCOTB_LIBS),
-        "-m",
-        VPI_LIB,
-        str(vvp_file),
-    ]
+    try:
+        from cocotb_tools.config import pygpi_entry_point
+    except ImportError:
+        pass
+    else:
+        env["GPI_USERS"] = pygpi_entry_point()
+
+    vpi_candidates = sorted(COCOTB_LIBS.glob(f"{VPI_LIB}.vpi")) or sorted(
+        COCOTB_LIBS.glob(f"{VPI_LIB}.dll")
+    )
+    if not vpi_candidates:
+        print("Cannot find the cocotb VPI library", file=sys.stderr)
+        return False
+
+    cmd_run = ["vvp", "-m", str(vpi_candidates[0]), str(vvp_file)]
     r = subprocess.run(cmd_run, capture_output=True, text=True, env=env)
     print(r.stdout)
     if r.stderr:
         print("STDERR:", r.stderr[:500], file=sys.stderr)
 
-    success = r.returncode == 0 and "FAILED" not in r.stdout
+    combined = r.stdout + r.stderr
+    success = (
+        r.returncode == 0
+        and "FAILED" not in combined
+        and "Unable to" not in combined
+        and "ALL" in r.stdout
+    )
     if success:
         print(f"[PASS] {top} ({test_module})")
     else:

@@ -6,4 +6,8 @@ dependencies:
   - pytest-benchmark
   - pytest-cov
   - numpy
-  - decorator
+  - pip
+  - pip:
+      - csdigit @ git+https://github.com/luk036/csdigit.git@2562cd1e676fd768120cf336f77a26fd7a168aad
+      - ellalgo @ git+https://github.com/luk036/ellalgo.git@bab79840a281c161baa8fa50151d85445e202f4e
+      - ginger @ git+https://github.com/luk036/ginger.git@3fbbaf0fadfc1fd9849ac79fc2ad9bb8511558cb

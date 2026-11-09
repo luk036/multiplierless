@@ -3,22 +3,85 @@
 Reads filter specifications from a JSON file, runs the ellipsoid-method
 optimization with CSD-quantized coefficients, and outputs:
   - CSD-quantized impulse response coefficients (numeric + CSD string)
-  - Optionally, a synthesizable Verilog module via csdigit.csd_multiplier
+  - Optionally, a synthesizable transpose- or direct-form Verilog module
 """
 
+import argparse
 import json
+import re
 import sys
+from math import ceil, log2
+from pathlib import Path
 from typing import Callable, Optional
 
 import numpy as np
-from csdigit.csd import to_csdnnz
 from csdigit.csd_multiplier import generate_csd_multipliers
 from ellalgo.cutting_plane import Options, cutting_plane_optim_q
 from ellalgo.ell import Ell
 
-from multiplierless.lowpass_oracle import create_lowpass_case_params
-from multiplierless.lowpass_oracle_q import LowpassOracleQ, csd_quantize
-from multiplierless.spectral_fact import spectral_fact_select
+from .lowpass_oracle import create_lowpass_case_params
+from .lowpass_oracle_q import LowpassOracleQ, csd_quantize_parts
+from .spectral_fact import SpectralMethod, spectral_fact_select
+
+# ============================================================
+#  Fixed-point helpers (shared by JSON output and Verilog)
+# ============================================================
+
+
+def format_csd(parts: list[tuple[int, int]]) -> str:
+    """Render greedy-CSD digits as an exact ``int.frac`` string.
+
+    A decimal point and at least one fractional digit are always emitted, so
+    the output schema holds even for values needing no fraction (0 or ±1).
+    """
+    if not parts:
+        return "0."
+    digits = {exp: ("+" if sign > 0 else "-") for exp, sign in parts}
+    max_exp = max(max(exp for exp, _ in parts), 0)
+    min_exp = min(min(exp for exp, _ in parts), -1)
+    int_part = "".join(digits.get(exp, "0") for exp in range(max_exp, -1, -1))
+    frac_part = "".join(digits.get(exp, "0") for exp in range(-1, min_exp - 1, -1))
+    return f"{int_part}.{frac_part}"
+
+
+def csd_to_float(csd: str) -> float:
+    """Exact numeric value of a CSD string (decimal point optional)."""
+    int_part, _, frac_part = csd.partition(".")
+    value = 0.0
+    for i, ch in enumerate(int_part):
+        exp = len(int_part) - 1 - i
+        if ch == "+":
+            value += 2.0**exp
+        elif ch == "-":
+            value -= 2.0**exp
+    for i, ch in enumerate(frac_part):
+        exp = -(i + 1)
+        if ch == "+":
+            value += 2.0**exp
+        elif ch == "-":
+            value -= 2.0**exp
+    return value
+
+
+def csd_coeffs_to_fixed(csd_list: list[str]) -> tuple[list[str], int]:
+    """Right-align fractional digits to one shared fixed-point scale.
+
+    Returns one integer-digit string per input, all the same length, plus the
+    exponent of their most significant digit.  Each string represents
+    ``round(value * 2**max_power)``, giving every coefficient the same units.
+    """
+    split = []
+    for csd in csd_list:
+        int_part, _, frac_part = csd.partition(".")
+        split.append((int_part, frac_part))
+    int_width = max(len(int_part) for int_part, _ in split)
+    frac_width = max(len(frac_part) for _, frac_part in split)
+    raws = [
+        int_part.rjust(int_width, "0") + frac_part.ljust(frac_width, "0")
+        for int_part, frac_part in split
+    ]
+    return raws, int_width + frac_width - 1
+
 
 # ============================================================
 #  Internal helpers: transpose-form Verilog generator
@@ -122,7 +185,9 @@ def _generate_transpose_verilog(
     input_width = coeffs[0][2]
     max_power = coeffs[0][3]
     N = len(coeffs)
-    output_width = input_width + max_power
+    # Summing N products can grow by log2(N) bits beyond a single product.
+    headroom = int(ceil(log2(N))) if N > 1 else 0
+    output_width = input_width + max_power + headroom
 
     for name, csd, iw, mp in coeffs:
         if iw != input_width or mp != max_power:
@@ -253,11 +318,27 @@ def _fix_verilog_ports(verilog: str) -> str:
     return "".join(lines)
 
 
+def _fix_output_wires(verilog: str, port_names: set[str]) -> str:
+    """Turn port redeclarations from csdigit into continuous assignments."""
+    fixed: list[str] = []
+    for line in verilog.splitlines(keepends=True):
+        match = re.match(r"^(\s*)wire signed \[[^\]]*\] (\w+) = (.*);\s*$", line)
+        if match and match.group(2) in port_names:
+            fixed.append(
+                f"{match.group(1)}assign {match.group(2)} = {match.group(3)};\n"
+            )
+        else:
+            fixed.append(line)
+    return "".join(fixed)
+
+
 def _generate_direct_verilog(
     coeffs: list[tuple[str, str, int, int]], module_name: str
 ) -> str:
     """Generate a direct-form FIR Verilog module via csdigit."""
-    return _fix_verilog_ports(generate_csd_multipliers(coeffs, module_name))
+    verilog = generate_csd_multipliers(coeffs, module_name)
+    port_names = {name for name, *_ in coeffs}
+    return _fix_output_wires(_fix_verilog_ports(verilog), port_names)
 
 
 # Strategy registry: verilog form -> generator (transpose / direct)
@@ -286,12 +367,30 @@ DEFAULTS = {
 }
 
 
+def _build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="fir-design",
+        description="Design a multiplierless (CSD) lowpass FIR filter from JSON.",
+    )
+    parser.add_argument("spec", help="path to the filter specification JSON")
+    parser.add_argument(
+        "-o",
+        "--output",
+        help="write result JSON to this file instead of stdout",
+    )
+    parser.add_argument(
+        "--verilog-out",
+        help="write the generated Verilog module to this file",
+    )
+    return parser
+
+
 def main(argv: Optional[list[str]] = None) -> int:
     """CLI entry point for multiplierless FIR filter design.
 
     Reads filter specifications from a JSON file, runs ellipsoid-method
-    optimization with CSD-quantized coefficients, and outputs results
-    as JSON to stdout.
+    optimization with CSD-quantized coefficients, and writes results as JSON
+    to stdout (or to ``--output``).
 
     Args:
         argv: Command-line arguments (list of strings). If None, uses
@@ -303,43 +402,70 @@ def main(argv: Optional[list[str]] = None) -> int:
     if argv is None:
         argv = sys.argv[1:]
 
-    if len(argv) < 1:
-        print(
-            "Usage: python -m multiplierless.fir_design <filter_spec.json>",
-            file=sys.stderr,
-        )
-        return 1
+    parser = _build_parser()
+    try:
+        args = parser.parse_args(argv)
+    except SystemExit as exc:
+        return 0 if exc.code == 0 else 1
 
-    with open(argv[0]) as f:
-        spec = json.load(f)
+    try:
+        spec = json.loads(Path(args.spec).read_text(encoding="utf-8"))
+    except OSError as exc:
+        print(f"error: cannot read {args.spec}: {exc}", file=sys.stderr)
+        return 1
+    except json.JSONDecodeError as exc:
+        print(f"error: invalid JSON in {args.spec}: {exc}", file=sys.stderr)
+        return 1
+    if not isinstance(spec, dict):
+        print("error: filter specification must be a JSON object", file=sys.stderr)
+        return 1
 
     N = spec.get("filter_order", DEFAULTS["filter_order"])
     csd_nnz = spec.get("csd_nnz", DEFAULTS["csd_nnz"])
+    if not isinstance(N, int) or N < 1:
+        print("error: filter_order must be a positive integer", file=sys.stderr)
+        return 1
+    if not isinstance(csd_nnz, int) or csd_nnz < 0:
+        print("error: csd_nnz must be a non-negative integer", file=sys.stderr)
+        return 1
+    try:
+        method = SpectralMethod(spec.get("spectral_method", "fft"))
+    except ValueError:
+        print(
+            f"error: unknown spectral_method: {spec.get('spectral_method')!r}",
+            file=sys.stderr,
+        )
+        return 1
+    tol = spec.get("root_tolerance", 1e-8)
 
-    oracle = create_lowpass_case_params(
-        N,
-        spec.get("passband_edge", DEFAULTS["passband_edge"]),
-        spec.get("stopband_edge", DEFAULTS["stopband_edge"]),
-        spec.get("passband_ripple", DEFAULTS["passband_ripple"]),
-        spec.get("stopband_attenuation", DEFAULTS["stopband_attenuation"]),
-        spec.get("discretization_factor", DEFAULTS["discretization_factor"]),
-    )
+    try:
+        oracle = create_lowpass_case_params(
+            N,
+            spec.get("passband_edge", DEFAULTS["passband_edge"]),
+            spec.get("stopband_edge", DEFAULTS["stopband_edge"]),
+            spec.get("passband_ripple", DEFAULTS["passband_ripple"]),
+            spec.get("stopband_attenuation", DEFAULTS["stopband_attenuation"]),
+            spec.get("discretization_factor", DEFAULTS["discretization_factor"]),
+        )
 
-    omega = LowpassOracleQ(csd_nnz, oracle)
-    Spsq = oracle.sp_sq
+        omega = LowpassOracleQ(csd_nnz, oracle)
+        Spsq = oracle.sp_sq
 
-    r0 = np.zeros(N)
-    E = Ell(
-        spec.get("ellipsoid_radius", DEFAULTS["ellipsoid_radius"]),
-        r0,
-    )
-    E.helper.use_parallel_cut = spec.get("parallel_cut", DEFAULTS["parallel_cut"])
+        r0 = np.zeros(N)
+        E = Ell(
+            spec.get("ellipsoid_radius", DEFAULTS["ellipsoid_radius"]),
+            r0,
+        )
+        E.helper.use_parallel_cut = spec.get("parallel_cut", DEFAULTS["parallel_cut"])
 
-    opts = Options()
-    opts.max_iters = spec.get("max_iters", DEFAULTS["max_iters"])
-    opts.tolerance = spec.get("tolerance", DEFAULTS["tolerance"])
+        opts = Options()
+        opts.max_iters = spec.get("max_iters", DEFAULTS["max_iters"])
+        opts.tolerance = spec.get("tolerance", DEFAULTS["tolerance"])
 
-    r, _, num_iters = cutting_plane_optim_q(omega, E, Spsq, opts)
+        r, _, num_iters = cutting_plane_optim_q(omega, E, Spsq, opts)
+    except (TypeError, ValueError) as exc:
+        print(f"error: invalid filter specification: {exc}", file=sys.stderr)
+        return 1
 
     if r is None:
         print(
@@ -348,48 +474,92 @@ def main(argv: Optional[list[str]] = None) -> int:
         )
         return 1
 
-    method = spec.get("spectral_method", "fft")
-    tol = spec.get("root_tolerance", 1e-8)
-    h = spectral_fact_select(r, method, tol)
-    csd_strings = [to_csdnnz(hi, csd_nnz) for hi in h]
+    try:
+        h = spectral_fact_select(r, method, tol)
+    except (TypeError, ValueError, RuntimeError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+    csd_strings: list[str] = []
     coefficients = []
-    for i, (hi, csd_str) in enumerate(zip(h, csd_strings)):
+    for i, hi in enumerate(h):
+        _, parts = csd_quantize_parts(float(hi), csd_nnz)
+        csd_str = format_csd(parts)
+        csd_strings.append(csd_str)
         coefficients.append(
-            {"index": i, "value": csd_quantize(float(hi), csd_nnz), "csd": csd_str}
+            {"index": i, "value": csd_to_float(csd_str), "csd": csd_str}
         )
 
     output = {
         "filter_order": N,
         "csd_nnz": csd_nnz,
         "iterations": num_iters,
-        "spectral_method": method,
+        "spectral_method": method.value,
         "coefficients": coefficients,
     }
 
+    verilog_text: Optional[str] = None
     if "verilog" in spec:
         vl = spec["verilog"]
+        if not isinstance(vl, dict):
+            print("error: 'verilog' must be a JSON object", file=sys.stderr)
+            return 1
         input_width = vl.get("input_width", 16)
         module_name = vl.get("module_name", "fir_filter")
         verilog_form = vl.get("form", "transpose")
+        if not isinstance(input_width, int) or input_width < 1:
+            print(
+                "error: verilog.input_width must be a positive integer",
+                file=sys.stderr,
+            )
+            return 1
+        if not isinstance(module_name, str) or not re.fullmatch(
+            r"[A-Za-z_][A-Za-z0-9_]*", module_name
+        ):
+            print(
+                f"error: invalid verilog.module_name: {module_name!r}",
+                file=sys.stderr,
+            )
+            return 1
 
-        max_len = max(len(s) for s in csd_strings)
-        max_power = max_len - 1
-
-        coeff_tuples = []
-        for i, csd_str in enumerate(csd_strings):
-            raw = csd_str.replace(".", "")
-            while len(raw) < max_len:
-                raw = "0" + raw
-            coeff_tuples.append((f"h{i}", raw, input_width, max_power))
+        raws, max_power = csd_coeffs_to_fixed(csd_strings)
+        coeff_tuples = [
+            (f"h{i}", raw, input_width, max_power) for i, raw in enumerate(raws)
+        ]
 
         generator = VERILOG_GENERATORS.get(verilog_form)
         if generator is None:
-            print(f"Unknown verilog form: {verilog_form}", file=sys.stderr)
+            print(f"error: unknown verilog form: {verilog_form}", file=sys.stderr)
             return 1
-        output["verilog"] = generator(coeff_tuples, module_name)
+        verilog_text = generator(coeff_tuples, module_name)
+        output["verilog"] = verilog_text
 
-    json.dump(output, sys.stdout, indent=2)
-    print()
+    if args.verilog_out:
+        if verilog_text is None:
+            print(
+                "error: --verilog-out requires a 'verilog' section",
+                file=sys.stderr,
+            )
+            return 1
+        try:
+            Path(args.verilog_out).write_text(
+                verilog_text, encoding="utf-8", newline="\n"
+            )
+        except OSError as exc:
+            print(
+                f"error: cannot write {args.verilog_out}: {exc}",
+                file=sys.stderr,
+            )
+            return 1
+
+    text = json.dumps(output, indent=2) + "\n"
+    if args.output:
+        try:
+            Path(args.output).write_text(text, encoding="utf-8")
+        except OSError as exc:
+            print(f"error: cannot write {args.output}: {exc}", file=sys.stderr)
+            return 1
+    else:
+        sys.stdout.write(text)
     return 0
 
 

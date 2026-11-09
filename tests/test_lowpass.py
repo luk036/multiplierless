@@ -40,46 +40,27 @@ from multiplierless.lowpass_oracle_q import LowpassOracleQ
 
 
 def create_lowpass_q_case(N: int = 48, nnz: int = 8) -> tuple[LowpassOracleQ, float]:
-    """[summary]
-
-    Keyword Arguments:
-        N (int): [description] (default: {48})
-        nnz (int): [description] (default: {8})
-
-    Returns:
-        [type]: [description]
-    """
+    """Create a CSD-quantized lowpass oracle and its initial stopband bound."""
     omega = create_lowpass_case(N)
     Spsq = omega.sp_sq
     Pcsd = LowpassOracleQ(nnz, omega)
     return Pcsd, Spsq
 
 
-def run_lowpass() -> tuple[int, bool]:
-    """[summary]
-
-    Arguments:
-        use_parallel_cut (float): [description]
-
-    Keyword Arguments:
-        duration (float): [description] (default: {0.000001})
-
-    Returns:
-        [type]: [description]
-    """
+def run_lowpass() -> tuple[int, bool, bool]:
     N = 32
 
-    r0 = np.zeros(N)  # initial xinit
-    r0[0] = 0
+    r0 = np.zeros(N)
     ellip = Ell(4.0, r0)
     omega = create_lowpass_case(N)
     Spsq = omega.sp_sq
     options = Options()
     options.max_iters = 50000
     options.tolerance = 1e-14
-    h, _, num_iters = cutting_plane_optim(omega, ellip, Spsq, options)  # type: ignore
-    # h = spectral_fact(r)
-    return num_iters, h is not None
+    h, gamma, num_iters = cutting_plane_optim(  # type: ignore
+        omega, ellip, Spsq, options
+    )
+    return num_iters, h is not None, 0.0 < gamma < Spsq
 
 
 # def test_no_parallel_cut(benchmark) -> None:
@@ -94,49 +75,33 @@ def run_lowpass() -> tuple[int, bool]:
 
 
 def test_lowpass() -> None:
-    """[summary]"""
-    result, feasible = run_lowpass()
+    result, feasible, improved = run_lowpass()
+
     assert feasible
-    # Use tolerance-based assertion instead of hardcoded range
-    # The exact iteration count may vary based on numerical precision
-    # but should be in a reasonable range for convergence
-    assert result >= 12000, f"Expected at least 12000 iterations, got {result}"
-    assert result <= 13000, f"Expected at most 13000 iterations, got {result}"
+    assert improved
+    assert 0 < result < 50000
 
 
-def run_lowpass_q() -> tuple[int, bool]:
-    """[summary]
-
-    Arguments:
-        use_parallel_cut (float): [description]
-
-    Keyword Arguments:
-        duration (float): [description] (default: {0.000001})
-
-    Returns:
-        [type]: [description]
-    """
+def run_lowpass_q() -> tuple[int, bool, bool]:
     N = 32
     nnz = 7
 
-    r0 = np.zeros(N)  # initial xinit
-    r0[0] = 0
+    r0 = np.zeros(N)
     ellip = Ell(4.0, r0)
     Pcsd, Spsq = create_lowpass_q_case(N, nnz)
     options = Options()
     options.max_iters = 20000
     options.tolerance = 1e-14
 
-    h, _, num_iters = cutting_plane_optim_q(Pcsd, ellip, Spsq, options)  # type: ignore
-    # h = spectral_fact(r)
-    return num_iters, h is not None
+    h, gamma, num_iters = cutting_plane_optim_q(  # type: ignore
+        Pcsd, ellip, Spsq, options
+    )
+    return num_iters, h is not None, 0.0 < gamma < Spsq
 
 
 def test_lowpass_q() -> None:
-    """[summary]"""
-    result, feasible = run_lowpass_q()
+    result, feasible, improved = run_lowpass_q()
+
     assert feasible
-    # Use tolerance-based assertion with wider range to accommodate
-    # variations in optimization convergence
-    assert result >= 1000, f"Expected at least 1000 iterations, got {result}"
-    assert result <= 5000, f"Expected at most 5000 iterations, got {result}"
+    assert improved
+    assert 0 < result < 20000

@@ -35,7 +35,7 @@ The **CSD (Canonical Signed Digit)** system is a signed-digit number representat
 - **Sparsity**: CSD representations typically contain fewer non-zero digits than binary representations
 - **Deterministic Conversion**: The conversion process is completely deterministic and reversible
 
-The CSD conversion process implemented in `csd.tpy` follows this algorithm:
+The CSD conversion process implemented in `multiplierless.lowpass_oracle_q` follows this algorithm:
 
 ```mermaid
 flowchart TD

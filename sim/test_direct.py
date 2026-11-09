@@ -20,21 +20,26 @@ def _csd_to_int(csd_str: str) -> int:
     return val
 
 
+def _align_csd(csd_list: list[str]) -> list[str]:
+    split = []
+    for csd in csd_list:
+        int_part, _, frac_part = csd.partition(".")
+        split.append((int_part, frac_part))
+    int_width = max(len(int_part) for int_part, _ in split)
+    frac_width = max(len(frac_part) for _, frac_part in split)
+    return [
+        int_part.rjust(int_width, "0") + frac_part.ljust(frac_width, "0")
+        for int_part, frac_part in split
+    ]
+
+
 def _load_expected() -> list[int]:
     """Load expected coefficients from the JSON output file."""
     json_path = os.environ.get("COEFF_JSON", "../fir_filter_direct_output.json")
     with open(Path(__file__).resolve().parent / json_path) as f:
         data = json.load(f)
-    coeffs = data["coefficients"]
-    csd_raw = [c["csd"] for c in coeffs]
-    max_len = max(len(s) for s in csd_raw)
-    result = []
-    for s in csd_raw:
-        raw = s.replace(".", "")
-        while len(raw) < max_len:
-            raw = "0" + raw
-        result.append(_csd_to_int(raw))
-    return result
+    csd_raw = [c["csd"] for c in data["coefficients"]]
+    return [_csd_to_int(raw) for raw in _align_csd(csd_raw)]
 
 
 def _output_port_names(dut) -> list[str]:

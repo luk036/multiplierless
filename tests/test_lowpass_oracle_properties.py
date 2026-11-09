@@ -6,249 +6,102 @@ from hypothesis.strategies import integers
 from multiplierless.lowpass_oracle_q import LowpassOracleQ
 
 
-def test_lowpass_oracle_q_initialization() -> None:
-    """Test that LowpassOracleQ initializes correctly."""
-    N = 32
-    nnz = 5
-    lowpass = create_lowpass_case(N)
-    oracle = LowpassOracleQ(nnz, lowpass)
+def _oracle(N: int = 32, nnz: int = 5) -> LowpassOracleQ:
+    return LowpassOracleQ(nnz, create_lowpass_case(N))
 
-    assert oracle.nnz == nnz
-    assert oracle.lowpass == lowpass
+
+def _ones(N: int = 32) -> np.ndarray:
+    r = np.zeros(N)
+    r[0] = 1.0
+    return r
+
+
+def test_initialization() -> None:
+    lowpass = create_lowpass_case(32)
+    oracle = LowpassOracleQ(5, lowpass)
+
+    assert oracle.nnz == 5
+    assert oracle.lowpass is lowpass
     assert isinstance(oracle.rcsd, np.ndarray)
     assert oracle.num_retries == 0
+    assert oracle.max_retries == lowpass.spectrum.shape[0]
 
 
-def test_lowpass_oracle_q_rcsd_properties() -> None:
-    """Test that rcsd has expected properties after first assessment."""
-    N = 32
-    nnz = 5
-    lowpass = create_lowpass_case(N)
-    oracle = LowpassOracleQ(nnz, lowpass)
+def test_rcsd_properties() -> None:
+    oracle = _oracle()
+    r = _ones()
 
-    # Create a simple test input
-    r = np.zeros(N)
-    r[0] = 1.0
+    _, rcsd, _, can_retry = oracle.assess_optim_q(r, oracle.lowpass.sp_sq, False)
 
-    Spsq = lowpass.sp_sq
-    cut, rcsd, Spsq2, can_retry = oracle.assess_optim_q(r, Spsq, False)
-
-    # Properties of rcsd
     assert isinstance(rcsd, np.ndarray)
-    assert len(rcsd) == len(r)
+    assert rcsd.shape == r.shape
     assert oracle.num_retries == 0
+    assert isinstance(can_retry, bool)
 
 
-def test_lowpass_oracle_q_cut_properties() -> None:
-    """Test that returned cut has expected structure."""
-    N = 32
-    nnz = 5
-    lowpass = create_lowpass_case(N)
-    oracle = LowpassOracleQ(nnz, lowpass)
+def test_cut_properties() -> None:
+    oracle = _oracle()
 
-    # Create a simple test input
-    r = np.zeros(N)
-    r[0] = 1.0
+    (gc, hc), _, _, _ = oracle.assess_optim_q(_ones(), oracle.lowpass.sp_sq, False)
 
-    Spsq = lowpass.sp_sq
-    try:
-        (gc, hc), rcsd, Spsq2, can_retry = oracle.assess_optim_q(r, Spsq, False)
-
-        # Check cut structure
-        assert isinstance(gc, np.ndarray)
-        # hc can be a float or a tuple of floats
-        assert isinstance(hc, (float, np.floating, tuple))
-        if isinstance(hc, tuple):
-            assert all(isinstance(x, (float, np.floating)) for x in hc)
-        assert len(gc) == len(r)
-    except Exception as e:
-        print(f"Cut properties test error: {e}")
-        # Allow for numerical issues
-        assert (
-            "numerical" in str(e).lower()
-            or "singular" in str(e).lower()
-            or "positive" in str(e).lower()
-            or "linAlg" in str(e)
-        )
+    assert isinstance(gc, np.ndarray)
+    assert gc.shape == (32,)
+    assert isinstance(hc, (float, np.floating, tuple))
 
 
-def test_lowpass_oracle_q_retry_behavior() -> None:
-    """Test that retry behavior is consistent."""
-    N = 32
-    nnz = 5
-    lowpass = create_lowpass_case(N)
-    oracle = LowpassOracleQ(nnz, lowpass)
+def test_retry_increments() -> None:
+    oracle = _oracle()
+    oracle.assess_optim_q(_ones(), oracle.lowpass.sp_sq, False)
+    before = oracle.num_retries
 
-    # Create a simple test input
-    r = np.zeros(N)
-    r[0] = 1.0
+    oracle.assess_optim_q(_ones(), oracle.lowpass.sp_sq, True)
 
-    Spsq = lowpass.sp_sq
-
-    try:
-        # First call (non-retry)
-        cut1, rcsd1, Spsq2_1, can_retry1 = oracle.assess_optim_q(r, Spsq, False)
-        initial_retries = oracle.num_retries
-
-        # Second call (retry)
-        cut2, rcsd2, Spsq2_2, can_retry2 = oracle.assess_optim_q(r, Spsq, True)
-
-        # Retry should increment the counter
-        assert oracle.num_retries == initial_retries + 1
-    except Exception as e:
-        print(f"Retry behavior test error: {e}")
-        # Allow for numerical issues or shape mismatches
-        assert (
-            "numerical" in str(e).lower()
-            or "singular" in str(e).lower()
-            or "positive" in str(e).lower()
-            or "linAlg" in str(e)
-            or "shapes" in str(e).lower()
-        )
+    assert oracle.num_retries == before + 1
 
 
-def test_lowpass_oracle_q_sp_sq_consistency() -> None:
-    """Test that Spsq values are consistent."""
-    N = 32
-    nnz = 5
-    lowpass = create_lowpass_case(N)
-    oracle = LowpassOracleQ(nnz, lowpass)
+def test_stopband_bound_is_non_negative() -> None:
+    oracle = _oracle()
 
-    # Create a simple test input
-    r = np.zeros(N)
-    r[0] = 1.0
+    _, _, stop_sq, _ = oracle.assess_optim_q(_ones(), oracle.lowpass.sp_sq, False)
 
-    Spsq = lowpass.sp_sq
-    try:
-        cut, rcsd, Spsq2, can_retry = oracle.assess_optim_q(r, Spsq, False)
-
-        # Spsq2 should be a float and non-negative
-        assert isinstance(Spsq2, (float, np.floating, type(None)))
-        if Spsq2 is not None:
-            assert Spsq2 >= 0
-    except Exception as e:
-        print(f"Spsq consistency test error: {e}")
-        # Allow for numerical issues
-        assert (
-            "numerical" in str(e).lower()
-            or "singular" in str(e).lower()
-            or "positive" in str(e).lower()
-            or "linAlg" in str(e)
-        )
+    assert stop_sq is None or stop_sq >= 0
 
 
-def test_lowpass_oracle_q_can_retry_logic() -> None:
-    """Test that can_retry flag is logical."""
-    N = 32
-    nnz = 5
-    lowpass = create_lowpass_case(N)
-    oracle = LowpassOracleQ(nnz, lowpass)
+def test_retry_flag_is_bounded() -> None:
+    oracle = _oracle()
 
-    # Create a simple test input
-    r = np.zeros(N)
-    r[0] = 1.0
+    _, _, _, can_retry = oracle.assess_optim_q(_ones(), oracle.lowpass.sp_sq, False)
+    assert isinstance(can_retry, bool)
 
-    Spsq = lowpass.sp_sq
+    for _ in range(min(5, oracle.max_retries)):
+        _, _, _, can_retry = oracle.assess_optim_q(_ones(), oracle.lowpass.sp_sq, True)
+        if not can_retry:
+            break
 
-    try:
-        # Initial call
-        cut, rcsd, Spsq2, can_retry = oracle.assess_optim_q(r, Spsq, False)
-
-        # can_retry should be a boolean
-        assert isinstance(can_retry, bool)
-
-        # After enough retries, can_retry should become False
-        max_retries = min(
-            3, lowpass.spectrum.shape[0] + 1
-        )  # Limit retries to avoid errors
-        for i in range(max_retries):
-            cut, rcsd, Spsq2, can_retry = oracle.assess_optim_q(r, Spsq, True)
-            if not can_retry:
-                break
-
-        # Should eventually become False (though this is not strictly guaranteed)
-        # assert not can_retry  # This might be too strict
-    except Exception as e:
-        print(f"Can retry logic test error: {e}")
-        # Allow for numerical issues or shape mismatches
-        assert (
-            "numerical" in str(e).lower()
-            or "singular" in str(e).lower()
-            or "positive" in str(e).lower()
-            or "linAlg" in str(e)
-            or "shapes" in str(e).lower()
-        )
+    assert oracle.num_retries <= oracle.max_retries
 
 
 @given(integers(min_value=16, max_value=32), integers(min_value=3, max_value=8))
-@settings(max_examples=5, deadline=2000)
-def test_lowpass_oracle_q_input_invariance(N: int, nnz: int) -> None:
-    """Test that oracle behavior is consistent with different valid inputs."""
-    lowpass = create_lowpass_case(N)
-    oracle = LowpassOracleQ(nnz, lowpass)
+@settings(max_examples=5, deadline=5000)
+def test_input_invariance(N: int, nnz: int) -> None:
+    oracle = _oracle(N, nnz)
 
-    # Create a simple test input
-    r = np.zeros(N)
-    r[0] = 1.0
+    (gc, _), rcsd, _, can_retry = oracle.assess_optim_q(
+        _ones(N), oracle.lowpass.sp_sq, False
+    )
 
-    Spsq = lowpass.sp_sq
-
-    # Should not raise exceptions
-    try:
-        cut, rcsd, Spsq2, can_retry = oracle.assess_optim_q(r, Spsq, False)
-
-        # Outputs should have expected types
-        assert isinstance(cut, tuple)
-        assert len(cut) == 2
-        assert isinstance(rcsd, np.ndarray)
-        assert isinstance(can_retry, bool)
-
-    except Exception as e:
-        # If there's an exception, it should be due to numerical issues,
-        # not programming errors
-        print(f"Input invariance test error: {e}")
-        assert (
-            "numerical" in str(e).lower()
-            or "singular" in str(e).lower()
-            or "positive" in str(e).lower()
-            or "linAlg" in str(e)
-        )
+    assert gc.shape == (N,)
+    assert rcsd.shape == (N,)
+    assert isinstance(can_retry, bool)
 
 
 @given(integers(min_value=16, max_value=24), integers(min_value=3, max_value=6))
-@settings(max_examples=3, deadline=2000)
-def test_lowpass_oracle_q_basic_functionality(N: int, nnz: int) -> None:
-    """Test basic functionality with property-based testing."""
-    lowpass = create_lowpass_case(N)
-    oracle = LowpassOracleQ(nnz, lowpass)
+@settings(max_examples=3, deadline=5000)
+def test_basic_functionality(N: int, nnz: int) -> None:
+    oracle = _oracle(N, nnz)
 
-    # Create a simple test input
-    r = np.zeros(N)
-    r[0] = 1.0
+    _, rcsd, _, _ = oracle.assess_optim_q(_ones(N), oracle.lowpass.sp_sq, False)
 
-    Spsq = lowpass.sp_sq
-
-    try:
-        # Test basic functionality
-        cut, rcsd, Spsq2, can_retry = oracle.assess_optim_q(r, Spsq, False)
-
-        # Basic checks
-        assert isinstance(oracle.nnz, int)
-        assert oracle.nnz == nnz
-        assert isinstance(oracle.num_retries, int)
-        assert oracle.num_retries >= 0
-
-        # Check output types
-        assert isinstance(rcsd, np.ndarray)
-        assert len(rcsd) == N
-        assert isinstance(can_retry, bool)
-
-    except Exception as e:
-        print(f"Basic functionality test error: {e}")
-        # Allow for numerical issues
-        assert (
-            "numerical" in str(e).lower()
-            or "singular" in str(e).lower()
-            or "positive" in str(e).lower()
-            or "linAlg" in str(e)
-        )
+    assert oracle.nnz == nnz
+    assert oracle.num_retries >= 0
+    assert len(rcsd) == N

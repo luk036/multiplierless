@@ -180,3 +180,13 @@ MANIFEST
 # Cache dirs
 .ruff_cache/
 .benchmarks/
+
+# Simulation and generated artifacts
+sim_build/
+*.vvp
+results.xml
+*.docx
+
+# Trunk cache
+.trunk/logs
+.trunk/notifications

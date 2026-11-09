@@ -5,17 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- Verilog coefficients now share one right-aligned fixed-point scale; previously each tap could use a different implicit power of two.
+- `value` is derived from the emitted CSD string, so the JSON output and the generated hardware can no longer disagree.
+- Direct-form Verilog no longer redeclares its output ports (csdigit workaround).
+- Transpose-form output now includes `ceil(log2(N))` bits of accumulator headroom.
+- `LowpassOracle` uses ellalgo's public `RoundRobin.peek_next()`/`seek()` instead of private cursor state.
+- CLI validates JSON, spectral method, and Verilog options, returning exit code 1 instead of raising.
+- Spectral factorization validates its input and scales the negative-spectrum tolerance to the spectrum magnitude.
+- `python_requires` corrected to `>=3.10` to match the PEP 604 annotations in use.
+
+### Changed
+- CLI uses `argparse` and supports `-o/--output`.
+- Public API is re-exported from `multiplierless`; the wrapped oracle is typed with a `Protocol`.
+- Dependencies are pinned to commits; CI installs the project with `pip install -e ".[testing]"` and runs mypy, black, isort, and an Icarus Verilog simulation.
+
+### Removed
+- Checked-in simulation/build artifacts, `.tpy` copies, scratch notes, and the unused Jekyll workflow.
+
 ## [0.2.0] - 2026-10-09
 
 ### Features
 - **Transpose-form FIR Verilog generation with cross-CSE**: Added a transpose-form FIR generator as the default (`form: 'transpose'`), keeping the direct form available via `form: 'direct'`; both use cross-CSE shared sub-expression elimination, with the missing-comma issue in CSD port lists fixed via post-processing. (#32844a8)
-- **Verilog/spectral strategy registries + `LowpassOracle`**: Extracted `LowpassOracle` with a `_scan_constraints` Template Method, a `SpectralMethod` enum + `spectral_fact_select`, and a `VERILOG_GENERATORS` registry. (#870dbd4)
+- **Verilog/spectral strategy registries + `LowpassOracle`**: Extracted `LowpassOracle`, a `SpectralMethod` enum + `spectral_fact_select`, and a `VERILOG_GENERATORS` registry. (#870dbd4)
 - **cocotb simulation + testbench generator**: Added a `sim/` runner with Windows workarounds and `tools/gen_test_bench.py` for iverilog verification. (#0c08dff)
 
 ### Performance
 - **Vectorized constraint scan**: Replaced the per-row Python dot-product loop in `LowpassOracle.assess_feas` with one `spectrum @ x` matvec plus boolean masks, preserving round-robin cut selection — assess_feas 3.05s → 0.082s (~37×), `main()` 3.66s → 0.49s (~7.5×). (#04021d4)
 - **Direct CSD quantization + rfft power spectrum**: Added `csd_quantize()` (no string round-trip), replaced the matrix-multiply power spectrum with `np.fft.rfft`, and pre-allocated the gradient buffer. (#6ce65fd)
-- **Cached FFT matrices**: Cache the `Bn`/`An` matrices in `spectral_fact_fft` (they depend only on filter order) — 5× warm-cache speedup at N=32. (#a593b20)
 
 ### Bug Fixes
 - **Quantize on demand**: Retry after a feasibility cut now quantizes on demand. (#79118e7)

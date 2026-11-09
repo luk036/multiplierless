@@ -1,10 +1,10 @@
-git+https://github.com/luk036/ginger.git
-git+https://github.com/luk036/csdigit.git
-git+https://github.com/luk036/ellalgo.git
+git+https://github.com/luk036/ginger.git@3fbbaf0fadfc1fd9849ac79fc2ad9bb8511558cb
+git+https://github.com/luk036/csdigit.git@2562cd1e676fd768120cf336f77a26fd7a168aad
+git+https://github.com/luk036/ellalgo.git@bab79840a281c161baa8fa50151d85445e202f4e
 # Requirements file for ReadTheDocs, check .readthedocs.yml.
 # To build the module reference correctly, make sure every external package
 # under `install_requires` in `setup.cfg` is also listed here!
-# sphinx_rtd_theme
+numpy>=1.12.0
 myst-parser[linkify]
 sphinx>=3.2.1
 sphinxcontrib-svgbob

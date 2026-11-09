@@ -67,7 +67,7 @@ python -m multiplierless.fir_design <filter_spec.json>
 
 ### Type Hints
 - **Required**: All function parameters and return types
-- **Style**: Modern syntax (`list[str]`, `dict[int, ...]`, `str | None`) — Python ≥ 3.9
+- **Style**: Modern syntax (`list[str]`, `dict[int, ...]`, `str | None`) — Python ≥ 3.10
 - **Walrus operator**: Used in hot paths (`if cut := self.assess_feas(xc):`)
 
 ### Naming Conventions

@@ -1,4 +1,4 @@
-"""Spectral Factorization — root-finding (default) + FFT (optimized)."""
+"""Spectral factorization — FFT (default) and Aberth-Ehrlich root paths."""
 
 from enum import Enum
 
@@ -13,6 +13,20 @@ __all__ = [
     "spectral_fact_root",
     "inverse_spectral_fact",
 ]
+
+_OVERSAMPLE = 100
+
+
+def _as_autocorr(r: np.ndarray) -> np.ndarray:
+    """Validate and normalize auto-correlation coefficients."""
+    arr = np.asarray(r, dtype=float)
+    if arr.ndim != 1 or arr.size == 0:
+        raise ValueError("autocorrelation must be a non-empty 1-D array")
+    if not np.all(np.isfinite(arr)):
+        raise ValueError("autocorrelation must contain only finite values")
+    if arr[0] <= 0:
+        raise ValueError("autocorrelation r[0] must be positive")
+    return arr
 
 
 class SpectralMethod(Enum):
@@ -36,6 +50,9 @@ def spectral_fact_root(r: np.ndarray, tolerance: float = 1e-8) -> np.ndarray:
     Returns:
         Minimum-phase impulse response coefficients.
     """
+    if tolerance <= 0:
+        raise ValueError("tolerance must be positive")
+    r = _as_autocorr(r)
     n = len(r)
     deg = 2 * n - 2
     coeffs = [0.0] * (deg + 1)
@@ -99,10 +116,6 @@ def spectral_fact_select(
     return spectral_fact_fft(r)
 
 
-# Pre-computed frequency grid for one-sided cosine matrix (depends only on n).
-# Retained as fallback; the primary path now uses rfft for the power spectrum.
-
-
 def _power_spectrum_fft(r: np.ndarray) -> np.ndarray:
     """Compute power spectrum via rfft (matches C++ / Rust approach).
 
@@ -110,7 +123,7 @@ def _power_spectrum_fft(r: np.ndarray) -> np.ndarray:
     then returns ``R[k] = 2 · Re(S[k]) - r₀``.
     """
     n = len(r)
-    m = 100 * n
+    m = _OVERSAMPLE * n
     pad = np.zeros(m)
     pad[:n] = r
     S = np.fft.rfft(pad)
@@ -124,17 +137,19 @@ def _power_spectrum_fft(r: np.ndarray) -> np.ndarray:
 
 def spectral_fact_fft(r: np.ndarray) -> np.ndarray:
     """Kolmogorov 1939 via FFT — rfft-based power spectrum (faster)."""
+    r = _as_autocorr(r)
     n = len(r)
-    mult_factor = 100
-    m = mult_factor * n
+    m = _OVERSAMPLE * n
+    r0 = float(r[0])
 
     # FFT-based power spectrum (O(m log m) instead of O(m·n))
     R = _power_spectrum_fft(r)
 
-    min_val = np.min(R)
+    scale = max(float(np.max(np.abs(R))), r0)
+    min_val = float(np.min(R))
     if min_val <= 0:
-        if min_val > -1e-4:
-            R = np.maximum(R, 1e-10)
+        if min_val > -1e-4 * scale:
+            R = np.maximum(R, 1e-10 * scale)
         else:
             raise RuntimeError(f"Spectral factorization failed: min={min_val:.6e}")
 
@@ -146,7 +161,7 @@ def spectral_fact_fft(r: np.ndarray) -> np.ndarray:
     alphatmp[ind] = 0
     phi = np.real(np.fft.ifft(1j * alphatmp))
 
-    index = np.arange(0, m, step=int(mult_factor))
+    index = np.arange(0, m, step=_OVERSAMPLE)
     return np.real(np.fft.ifft(np.exp(alpha[index] + 1j * phi[index]), n))
 
 
@@ -162,4 +177,9 @@ def inverse_spectral_fact(h: np.ndarray) -> np.ndarray:
     Returns:
         Auto-correlation coefficients.
     """
+    h = np.asarray(h, dtype=float)
+    if h.ndim != 1 or h.size == 0:
+        raise ValueError("h must be a non-empty 1-D array")
+    if not np.all(np.isfinite(h)):
+        raise ValueError("h must contain only finite values")
     return np.convolve(h, h[::-1])[len(h) - 1 :]
