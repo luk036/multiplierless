@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.3.0] - 2026-11-20
 
 ### Fixed
 - Verilog coefficients now share one right-aligned fixed-point scale; previously each tap could use a different implicit power of two.
@@ -24,6 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - Checked-in simulation/build artifacts, `.tpy` copies, scratch notes, and the unused Jekyll workflow.
+
+### Build & CI
+- CI installs `pytest-benchmark>=5.3.1` from PyPI in the Python 3.10 environment; the conda-forge build resolves 5.3.0, which crashes pytest 9 with `AttributeError: Function object has no attribute _nodeid`.
 
 ## [0.2.0] - 2026-10-09
 
